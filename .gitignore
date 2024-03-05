@@ -1,0 +1,15 @@
+# Ignore build artifacts
+build/
+
+# Ignore sensitive configuration files
+.env
+
+# Ignore logs
+logs/
+
+# Ignore temporary files
+tmp/
+
+# Ignore dependencies (if managed locally)
+node_modules/
+node_modules
