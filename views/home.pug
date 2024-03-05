@@ -1,0 +1,6 @@
+extends default
+block content
+    .home-search
+        img(src="/images/pawsLogo.png" width="180" height="180")
+        form(action='/search' method='GET')
+            input.home-input(autofocus='' placeholder='Search Paws Connect' type='search' name='q')

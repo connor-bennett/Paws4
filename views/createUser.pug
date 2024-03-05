@@ -1,0 +1,26 @@
+extends default 
+block content 
+    h1=title 
+        br
+        br
+        hr
+        h3.text-center Enter Information Below:
+        
+        form(action="/createUser", method="POST")
+            div.form-group
+                label(for="username") Username:
+                input(type="text", id="username", name="username", placeholder="Enter your username", required)
+                br
+            div.form-group
+                label(for="email") Email: 
+                input(type="email", id="email", name="email", placeholder="Enter Email", required)
+            div.form-group
+                label(for="password") Password:
+                input(type="password", id="password", name="password", placeholder="Enter your password", required)
+                br
+            div.form-group
+                label(for="confirm_password") Confirm Password:
+                input(type="password", id="confirm_password", name="confirm_password", placeholder="confirm password", required)
+                br
+            div.form-group
+                button(type="submit") Create

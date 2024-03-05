@@ -1,0 +1,25 @@
+extends default 
+block content 
+    h1=title 
+        br
+        br
+        hr
+        h3 User Details
+            ul
+                li Username: #{user.user_name}
+                li Password: #{user.password}
+                li Email: #{user.email}
+        br
+        br
+        hr
+        h3.text-center Enter Information Below:
+        
+        form(action="/updateUser", method="POST")
+            label(for="newEmail") New Email:
+            input(type="email", id="newEmail", name="newEmail", required, value=user.email)
+            br
+            label(for="newPassword") New Password:
+            input(type="password", id="newPassword", name="newPassword", required)
+            br
+           
+            button(type="submit") Update
