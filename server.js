@@ -73,6 +73,18 @@ app.get('/updateUser', async (req, res) => {
     });
 });
 
+//-------Create Pets--------------
+app.get('/createPet', async (req, res) =>{
+    // CHeck if user is logged in
+    if (!req.session.user){
+      return res.send('You are not logged in');
+    }
+    res.render('createPet', {
+        title: 'PawsConnect'
+    });
+   
+});
+
 
 // ---------------------------------------------
 // POST ROUTES
