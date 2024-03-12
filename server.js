@@ -37,7 +37,7 @@ app.use(session({
 // ------- ROUTE --------------------
 app.get('/', (req, res) => {
     res.render('home', {
-      title: 'Paws Coonnect',
+      title: 'Paws Connect',
     });
   });
 
@@ -133,7 +133,6 @@ app.post('/createUser', async(req, res) => {
     var values = [email, password, username];
   
     // Execute the query
-     // Execute the query
      try {
       await executeSQL(sql, values);
       res.send('User created successfully!');
