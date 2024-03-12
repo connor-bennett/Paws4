@@ -20,7 +20,7 @@ block content
                 label(for="pet_type") Pet Type:
                 select(name="pet_type", id="pet_type", required) 
                     each petType in types
-                        option(value=`{petType}`)= petType[0]
+                        option(value=`{petType}`)= petType[0] + petType.slice(1)
                 br
             div.form-group 
                 label(for="pet_breed") Pet Breed: 
