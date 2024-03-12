@@ -9,18 +9,16 @@ block content
         form(action="/createPet", method="POST")
             div.form-group
                 label(for="pet_id") PetID: 
-                input(type="text", id="pet_id", name="pet_id", placeholder="Entter your Pet ID", required)
+                input(type="text", id="pet_id", name="pet_id", placeholder="Enter Pet ID", required)
                 br
             div.form-group
                 label(for="pet_name") Pet Name:
-                input(type="text", id="pet_name", name="pet_name", placeholder="Enter Pet's Name", required)
+                input(type="text", id="pet_name", name="pet_name", placeholder="Enter Pet Name", required)
                 br
             div.form-group 
                 var types = ["Dog", "Cat", "Other"]
                 label(for="pet_type") Pet Type:
-                select(name="pet_type", id="pet_type", required) 
-                    each petType in types
-                        option(value=`{petType}`)= petType[0] + petType.slice(1)
+                input(type="text", name="pet_type", id="pet_type", placeholder="Enter Pet Type", required)
                 br
             div.form-group 
                 label(for="pet_breed") Pet Breed: 
