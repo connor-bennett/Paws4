@@ -73,6 +73,18 @@ app.get('/updateUser', async (req, res) => {
     });
 });
 
+//-------Create Pets--------------
+app.get('/createPet', async (req, res) =>{
+    // Check if user is logged in (user information exists in session)
+    if (!req.session.user){
+      return res.send('You are not logged in');
+    }
+
+    // Render the createPet page with the current user's inforamtion
+    res.render('createPet', {
+        title: 'PawsConnect'});
+});
+
 
 // ---------------------------------------------
 // POST ROUTES
@@ -167,6 +179,38 @@ app.post('/updateUser', async (req, res) => {
         return res.send('Error updating user information: ' + error.message);
     }
 });
+
+//-------------POST Create Pet Profile Route----------------------
+app.post('/createPet', async (req, res) => {
+// Check if user is logged in (user information exists in session)
+if (!req.session.user){
+  return res.send('You are not logged in');
+}
+
+// Get the new information from the form submission
+const petID = req.body.pet_id;
+const petName = req.body.pet_name;
+const petType = req.body.pet_type;
+const petBreed = req.body.pet_breed;
+const petProfile = req.body.pet_profile;
+const petBio = req.body.pet_bio;
+
+// Insert the information into database table
+let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
+           VALUES (?,?,?,?,?,?,?)`;
+let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
+
+//Execute the query
+
+try{
+  await executeSQL(sql, values);
+  res.send('Pet created successfully!');
+} catch (error) {
+  return res.send ('Error in creating pet: ' + error.message);
+}
+
+});
+
 
 
 // ===================================================================
