@@ -194,6 +194,7 @@ const petBreed = req.body.pet_breed;
 const petProfile = req.body.pet_profile;
 const petBio = req.body.pet_bio;
 
+console.log(petType);
 //Check for existing petID
 let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
 let existingPet = await executeSQL(petCheckSQL, [petID]);
