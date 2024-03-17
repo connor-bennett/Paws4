@@ -85,6 +85,12 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
+// ------- Profile --------------------
+app.get('/profiles', async(req, res) => {
+  res.render('profiles', {
+      title: 'Paws Connect'
+  });
+});
 
 // ---------------------------------------------
 // POST ROUTES

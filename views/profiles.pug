@@ -1,0 +1,49 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(http-equiv='X-UA-Compatible', content='ie=edge')
+    title= title
+    link(rel='stylesheet', type='text/css', href='/css/style.css')
+  body
+    
+    #headerImage
+      img(src='/images/SampleBanner.jpg' width="1900" height="100" border=" 2px solid black")
+
+    #profileNav
+      <h2 style="text-align: center"> Menu</h2>
+      ul
+        li.nav-item
+          a.navbar-brand(href='/') Home
+        li.nav-item
+          a.nav-link(href='/login') Login
+        li.nav-item
+          a.nav-link(href='/createUser') Sign Up
+        li.nav-item
+          a.nav-link(href='/createPet') Create Pet Profile
+
+    #profilePics 
+      <h2 style="text-align: center"> Pictures</h2>
+      <p style="text-align: center"> picture gallery here</p>
+
+    #posts 
+      <h2 style="text-align: center"> Posts</h2>
+      <p style="text-align: center"> posts here</p>
+
+    #friends
+      <h2 style="text-align: center"> Friends</h2>
+      <p style="text-align: center"> friends here</p>
+
+    #petprofiles
+      <h2 style="text-align: center"> Pet Profiles</h2>
+      <p style="text-align: center"> pet profiles here</p>
+
+    #profileInfo
+      <h2 style="text-align: center"> UserInfo</h2>
+      img(src='/images/pawsLogo.png' width="200" height="200" align="center" style="display: block; margin-left: auto; margin-right: auto;")
+      <br>
+      p User Name: 
+      p User Since: 
+      P Number of Posts:
+    block content
