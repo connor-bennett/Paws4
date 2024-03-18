@@ -88,6 +88,17 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
+//-------Create Posts--------------
+app.get('/createPost', async (req, res) =>{
+  // Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in');
+  }
+
+  // Render the createPost page with the current user's inforamtion
+  res.render('createPost', {
+      title: 'PawsConnect'});
+});
 
 // ---------------------------------------------
 // POST ROUTES
@@ -130,6 +141,9 @@ app.post('/createUser', async(req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
+    const displayName = req.body.display_name;
+    const profilePicture = req.body.profile_picture;
+    const preferredLang = req.body.preferred_lang;
     //const confirmPassword = req.body.confirm_password;
   
     // Check if passwords match
@@ -146,8 +160,8 @@ app.post('/createUser', async(req, res) => {
     }
   
     // SQL query to insert the user into the database
-    var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
-    var values = [email, password, username];
+    var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+    var values = [email, password, username, displayName, profilePicture, preferredLang];
   
     // Execute the query
     try {
@@ -207,13 +221,20 @@ const petBreed = req.body.pet_breed;
 const petProfile = req.body.pet_profile;
 const petBio = req.body.pet_bio;
 
+//Check for existing petID
+let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
+let existingPet = await executeSQL(petCheckSQL, [petID]);
+
+if (existingPet.length > 0) {
+  return res.send("Pet ID is already taken!");
+}
+
 // Insert the information into database table
 let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
            VALUES (?,?,?,?,?,?,?)`;
 let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
 //Execute the query
-
 try{
   await executeSQL(sql, values);
   res.send('Pet created successfully!');
@@ -222,8 +243,57 @@ try{
 }
 
 });
+//-------------POST Pet Owner Create Post Route----------------------
+app.post('/createPost', async (req, res) => {
+  // Check if user is logged in 
+  if (!req.session.user){
+    return res.send('Not logged in');
+  }
+  
+  const postImage = req.body.posting_image;
+  const postText = req.body.post_text;
+  const stringTagPet = req.body.post_tag;
+  const pet = req.body.pet_petId;
+  const timestamp = new Date().valueOf();
+  // console.log(timestamp);
+  // Insert the information
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
+  
+  //Execute the query
+  
+  try{
+    await executeSQL(sql, values);
+    res.send('post created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating post: ' + error.message);
+  }
+  
+  });
 
+// //-------------GET Pet Owner Create Post Route----------------------
+// app.get('/createPost', async (req, res) => {
+//     // Check if user is logged in 
+//   if (!req.session.user){
+//     return res.send('Not logged in');
+//   }
+//   const owner_id = req.session.user.id;
+//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
+//   let params = [owner_id];
 
+//   //Execute the query
+//   try{
+//     let data = await executeSQL(sql, params);
+//     res.render('createPost',{"pets":data[0]})
+    
+//   } catch (error) {
+//     return res.send ('Error in creating data: ' + error.message);
+//   }
+  
+//   // render pet ids 
+//   // res.render('createPost',{"pets":data[0]})
+// });
 
 // ===================================================================
 // DATA BASE SET UP
