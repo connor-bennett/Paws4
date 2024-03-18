@@ -31,8 +31,8 @@ block content
             div.form-group 
                 //manually inputed for now, can change to take in languages of a translater API
                 - var langs = ["English", "Spanish", "French", "German"]
-                label(for="perferred_lang") Perferred Language:
-                select(name="perferred_lang", id="perferred_lang", required)
+                label(for="preferred_lang") Preferred Language:
+                select(name="preferred_lang", id="preferred_lang", required)
                     each language in langs 
                         option(value=language)= language[0] +language.slice(1)
                 br

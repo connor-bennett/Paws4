@@ -127,7 +127,7 @@ app.post('/createUser', async(req, res) => {
     const email = req.body.email;
     const displayName = req.body.display_name;
     const profilePicture = req.body.profile_picture;
-    const perferredLang = req.body.perferred_lang;
+    const preferredLang = req.body.preferred_lang;
     //const confirmPassword = req.body.confirm_password;
   
     // Check if passwords match
@@ -145,7 +145,7 @@ app.post('/createUser', async(req, res) => {
   
     // SQL query to insert the user into the database
     var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
-    var values = [email, password, username, displayName, profilePicture, perferredLang];
+    var values = [email, password, username, displayName, profilePicture, preferredLang];
   
     // Execute the query
      try {
