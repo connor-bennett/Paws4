@@ -141,6 +141,9 @@ app.post('/createUser', async(req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
+    const displayName = req.body.display_name;
+    const profilePicture = req.body.profile_picture;
+    const preferredLang = req.body.preferred_lang;
     //const confirmPassword = req.body.confirm_password;
   
     // Check if passwords match
@@ -157,8 +160,8 @@ app.post('/createUser', async(req, res) => {
     }
   
     // SQL query to insert the user into the database
-    var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
-    var values = [email, password, username];
+    var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+    var values = [email, password, username, displayName, profilePicture, preferredLang];
   
     // Execute the query
     try {
@@ -218,13 +221,20 @@ const petBreed = req.body.pet_breed;
 const petProfile = req.body.pet_profile;
 const petBio = req.body.pet_bio;
 
+//Check for existing petID
+let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
+let existingPet = await executeSQL(petCheckSQL, [petID]);
+
+if (existingPet.length > 0) {
+  return res.send("Pet ID is already taken!");
+}
+
 // Insert the information into database table
 let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
            VALUES (?,?,?,?,?,?,?)`;
 let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
 //Execute the query
-
 try{
   await executeSQL(sql, values);
   res.send('Pet created successfully!');
