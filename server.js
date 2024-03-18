@@ -11,6 +11,9 @@ const pool = dbConnection();
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
@@ -108,7 +111,9 @@ app.post('/login', async(req, res) => {
     const storedPassword = user[0].password;
 
     // Compare storedPassword with the provided password
-    if (storedPassword !== password) {
+    const passwordMatch = await bcrypt.compare(password, storedPassword);
+
+    if (!passwordMatch) {
         return res.send('Invalid password');
     }
 
@@ -145,12 +150,20 @@ app.post('/createUser', async(req, res) => {
     var values = [email, password, username];
   
     // Execute the query
-     try {
+    try {
+      // Hash and salt the password
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // SQL query to insert the user into the database with hashed password
+      var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
+      var values = [email, hashedPassword, username];
+
+      // Execute the query
       await executeSQL(sql, values);
       res.send('User created successfully!');
-    } catch (error) {
+  } catch (error) {
       return res.send('Error creating user: ' + error.message);
-    }
+  }
   
   });
 
@@ -187,7 +200,7 @@ if (!req.session.user){
 }
 
 // Get the new information from the form submission
-const petID = req.body.pet_id;
+const petID = req.body.pet_id;    // TODO: Remove this input feild we should auot increment unique pet id's for each pet and the users should never see these
 const petName = req.body.pet_name;
 const petType = req.body.pet_type;
 const petBreed = req.body.pet_breed;
