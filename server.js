@@ -85,6 +85,17 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
+//-------Create Posts--------------
+app.get('/createPost', async (req, res) =>{
+  // Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in');
+  }
+
+  // Render the createPost page with the current user's inforamtion
+  res.render('createPost', {
+      title: 'PawsConnect'});
+});
 
 // ---------------------------------------------
 // POST ROUTES
@@ -209,8 +220,57 @@ try{
 }
 
 });
+//-------------POST Pet Owner Create Post Route----------------------
+app.post('/createPost', async (req, res) => {
+  // Check if user is logged in 
+  if (!req.session.user){
+    return res.send('Not logged in');
+  }
+  
+  const postImage = req.body.posting_image;
+  const postText = req.body.post_text;
+  const stringTagPet = req.body.post_tag;
+  const pet = req.body.pet_petId;
+  const timestamp = new Date().valueOf();
+  // console.log(timestamp);
+  // Insert the information
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
+  
+  //Execute the query
+  
+  try{
+    await executeSQL(sql, values);
+    res.send('post created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating post: ' + error.message);
+  }
+  
+  });
 
+// //-------------GET Pet Owner Create Post Route----------------------
+// app.get('/createPost', async (req, res) => {
+//     // Check if user is logged in 
+//   if (!req.session.user){
+//     return res.send('Not logged in');
+//   }
+//   const owner_id = req.session.user.id;
+//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
+//   let params = [owner_id];
 
+//   //Execute the query
+//   try{
+//     let data = await executeSQL(sql, params);
+//     res.render('createPost',{"pets":data[0]})
+    
+//   } catch (error) {
+//     return res.send ('Error in creating data: ' + error.message);
+//   }
+  
+//   // render pet ids 
+//   // res.render('createPost',{"pets":data[0]})
+// });
 
 // ===================================================================
 // DATA BASE SET UP
