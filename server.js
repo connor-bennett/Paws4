@@ -85,18 +85,6 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
-//-------Create Posts--------------
-app.get('/createPost', async (req, res) =>{
-  // Check if user is logged in (user information exists in session)
-  if (!req.session.user){
-    return res.send('You are not logged in');
-  }
-
-  // Render the createPost page with the current user's inforamtion
-  res.render('createPost', {
-      title: 'PawsConnect'});
-});
-
 // ---------------------------------------------
 // POST ROUTES
 // ---------------------------------------------
@@ -249,28 +237,26 @@ app.post('/createPost', async (req, res) => {
   
   });
 
-// //-------------GET Pet Owner Create Post Route----------------------
-// app.get('/createPost', async (req, res) => {
-//     // Check if user is logged in 
-//   if (!req.session.user){
-//     return res.send('Not logged in');
-//   }
-//   const owner_id = req.session.user.id;
-//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
-//   let params = [owner_id];
+//-------------GET Pet Owner Create Post Route----------------------
+app.get('/createPost', async (req, res) => {
+    // Check if user is logged in 
+  if (!req.session.user){
+    return res.send('Not logged in');
+  }
+  const owner_id = req.session.user.id;
+  let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+  let params = [owner_id];
 
-//   //Execute the query
-//   try{
-//     let data = await executeSQL(sql, params);
-//     res.render('createPost',{"pets":data[0]})
+  // Execute the query
+  try{
+    let data = await executeSQL(sql, params);
+    res.render('createPost',{pets: data})
     
-//   } catch (error) {
-//     return res.send ('Error in creating data: ' + error.message);
-//   }
+  } catch (error) {
+    return res.send ('Error in creating data: ' + error.message);
+  }
   
-//   // render pet ids 
-//   // res.render('createPost',{"pets":data[0]})
-// });
+});
 
 // ===================================================================
 // DATA BASE SET UP
