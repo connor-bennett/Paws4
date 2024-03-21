@@ -75,7 +75,18 @@ app.get('/updateUser', async (req, res) => {
         user: user // Pass the user information to the template
     });
 });
+//------Update/Change Password------------
+app.get('/updatePassword', async (req, res) =>{
+  //Check if user is logged in (user information exists in session)
+    if(!req.session.user){
+      return res.send("You are not logged in");
+    }
 
+    //Render the updatePasswords page
+    res.render('updatePassword',{
+      title: "Paws Connect"
+    });
+});
 //-------Create Pets--------------
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
@@ -83,22 +94,36 @@ app.get('/createPet', async (req, res) =>{
       return res.send('You are not logged in');
     }
 
-    // Render the createPet page with the current user's inforamtion
+    // Render the createPet page 
     res.render('createPet', {
-        title: 'PawsConnect'});
+        title: 'Paws Connect'});
 });
 
-// //-------Create Posts--------------
-// app.get('/createPost', async (req, res) =>{
-//   // Check if user is logged in (user information exists in session)
-//   if (!req.session.user){
-//     return res.send('You are not logged in');
-//   }
+//-------------Pet Owner Create Post Route----------------------
+app.get('/createPost', async (req, res) => {
+  // Check if user is logged in 
+if (!req.session.user){
+  return res.send('Not logged in');
+}
+const owner_id = req.session.user.id;
+let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+let params = [owner_id];
 
-//   // Render the createPost page with the current user's inforamtion
-//   res.render('createPost', {
-//       title: 'PawsConnect'});
-// });
+//Execute the query
+try{
+  let data = await executeSQL(sql, params);
+  console.log(data)
+  res.render('createPost',{
+    title: 'Paws Connect',
+    pets: data})
+  
+} catch (error) {
+  return res.send ('Error in creating data: ' + error.message);
+}
+
+});
+
+
 
 // ---------------------------------------------
 // POST ROUTES
@@ -159,9 +184,9 @@ app.post('/createUser', async(req, res) => {
       return res.send("Email already exists.");
     }
   
-    // SQL query to insert the user into the database
-    var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
-    var values = [email, password, username, displayName, profilePicture, preferredLang];
+    // // SQL query to insert the user into the database
+    // var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+    // var values = [email, password, username, displayName, profilePicture, preferredLang];
   
     // Execute the query
     try {
@@ -169,8 +194,8 @@ app.post('/createUser', async(req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // SQL query to insert the user into the database with hashed password
-      var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
-      var values = [email, hashedPassword, username];
+      var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+      var values = [email, hashedPassword, username, displayName, profilePicture, preferredLang];
 
       // Execute the query
       await executeSQL(sql, values);
@@ -189,15 +214,20 @@ app.post('/updateUser', async (req, res) => {
     }
 
     // Get the new information from the form submission
-    const newEmail = req.body.newEmail;
-    const newPassword = req.body.newPassword;
+    const newEmail = req.body.new_email;
+    const newDisplayName = req.body.new_display_name;
+    const newProfPic = req.body.new_profile_picture;
+    const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
-    let sql = "UPDATE users_table SET email = ?, password = ? WHERE id = ?";
+    let sql = "UPDATE users_table SET email = ?, display_name = ?, profile_img = ?, language = ? WHERE id = ?";
     try {
-        await executeSQL(sql, [newEmail, newPassword, req.session.user.id]);
+        await executeSQL(sql, [newEmail, newDisplayName, newProfPic, newLang, req.session.user.id]);
         // Update the user information in the session as well
         req.session.user.email = newEmail;
+        req.session.user.display_name = newDisplayName;
+        req.session.user.profile_img = newProfPic;
+        req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
         res.send('User information updated successfully');
@@ -206,41 +236,84 @@ app.post('/updateUser', async (req, res) => {
     }
 });
 
+//------------POST Update Password Route
+app.post('/updatePassword', async (req, res) => {
+  //Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+      return res.send("You are not logged in");
+  }
+
+  //Get new information from the form submition
+  const currentPassword = req.body.current_password;
+  const newPassword = req.body.new_password;
+  const confirmPassword = req.body.confirm_new_password;
+
+  //Compare current password with stored password to authorize change
+   const storedPassword = req.session.user.password;
+   const passwordAuth = await bcrypt.compare(currentPassword, storedPassword);
+
+   if (!passwordAuth){
+      return res.send("Invalid Current Password");
+   }
+
+   //Compare the new passwords to eachother
+   if (newPassword !== confirmPassword){
+      return res.send('New passwords do not match');
+   }
+
+   //Update the database table
+   try {
+    //Hash and salt the password
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // SQL query to update users password
+      let sql = "UPDATE users_table SET password = ? WHERE id = ?";
+      let params = [hashedPassword, req.session.user.id];
+
+      //Execute the query
+      await executeSQL(sql, params);
+      res.send('Password Successfully Updated!');
+  } catch (error) {
+    return res.send("Error updating password: " + error.message);
+  }
+
+});
+
 //-------------POST Create Pet Profile Route----------------------
 app.post('/createPet', async (req, res) => {
-// Check if user is logged in (user information exists in session)
-if (!req.session.user){
-  return res.send('You are not logged in');
-}
+  // Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in');
+  }
 
-// Get the new information from the form submission
-const petID = req.body.pet_id;    // TODO: Remove this input feild we should auot increment unique pet id's for each pet and the users should never see these
-const petName = req.body.pet_name;
-const petType = req.body.pet_type;
-const petBreed = req.body.pet_breed;
-const petProfile = req.body.pet_profile;
-const petBio = req.body.pet_bio;
+  // Get the new information from the form submission
+  const petID = req.body.pet_id;    
+  const petName = req.body.pet_name;
+  const petType = req.body.pet_type;
+  const petBreed = req.body.pet_breed;
+  const petProfile = req.body.pet_profile;
+  const petBio = req.body.pet_bio;
 
-//Check for existing petID
-let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
-let existingPet = await executeSQL(petCheckSQL, [petID]);
+  //Check for existing petID
+  let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let existingPet = await executeSQL(petCheckSQL, [petID]);
 
-if (existingPet.length > 0) {
-  return res.send("Pet ID is already taken!");
-}
+  if (existingPet.length > 0) {
+    return res.send("Pet ID is already taken!");
+  }
 
-// Insert the information into database table
-let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
-           VALUES (?,?,?,?,?,?,?)`;
-let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
+  // Insert the information into database table
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
-//Execute the query
-try{
-  await executeSQL(sql, values);
-  res.send('Pet created successfully!');
-} catch (error) {
-  return res.send ('Error in creating pet: ' + error.message);
-}
+  //Execute the query
+  try{
+    await executeSQL(sql, values);
+    res.send('Pet created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating pet: ' + error.message);
+  }
 
 });
 //-------------POST Pet Owner Create Post Route----------------------
@@ -272,31 +345,6 @@ app.post('/createPost', async (req, res) => {
   
   });
 
-//-------------GET Pet Owner Create Post Route----------------------
-app.get('/createPost', async (req, res) => {
-    // Check if user is logged in 
-  if (!req.session.user){
-    return res.send('Not logged in');
-  }
-  const owner_id = req.session.user.id;
-  let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
-  let params = [owner_id];
-
-  //Execute the query
-  try{
-    let data = await executeSQL(sql, params);
-    console.log(data)
-    res.render('createPost',{
-      title: 'PawsConnect',
-      pets: data})
-    
-  } catch (error) {
-    return res.send ('Error in creating data: ' + error.message);
-  }
-  
-  // render pet ids 
-  // res.render('createPost',{"pets":data[0]})
-});
 
 // ===================================================================
 // DATA BASE SET UP

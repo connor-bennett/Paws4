@@ -4,21 +4,37 @@ block content
         br
         br
         hr
-        h3 User Details
+        h3 Update User Inforamation!
             ul
                 li Username: #{user.user_name}
-                li Email: #{user.email}
+                li Display Name: #{user.display_name}
         br
         br
         hr
-        h3.text-center Enter Information Below:
+        h3.text-center Want to change password instead? 
+                        a(href="/updatePassword") Click Here!
+        h3.text-center Change Information Below:
         
         form(action="/updateUser", method="POST")
-            label(for="newEmail") New Email:
-            input(type="email", id="newEmail", name="newEmail", required, value=user.email)
-            br
-            label(for="newPassword") New Password:
-            input(type="password", id="newPassword", name="newPassword", required)
-            br
-           
+            div.form-group
+                label(for="new_email") New Email:
+                input(type="email", id="new_email", name="new_email", required, value=user.email)
+                br
+            div.form-group 
+                label(for="new_display_name") Display Name:
+                input(type="text", id="new_display_name", name="new_display_name", required, value=user.display_name)
+                br
+            div.form-group 
+                //figure out how to add picutures through files
+                label(for="new_profile_picture") Profile Picture:
+                input(type="text", id="new_profile_picture", name="new_profile_picture", value=user.profile_picture)
+                br
+            div.form-group 
+                //manually inputed for now, can change to take in languages of a translater API
+                - var langs = ["English", "Spanish", "French", "German"]
+                label(for="new_preferred_lang") Preferred Language:
+                select(name="new_preferred_lang", id="new_preferred_lang", required)
+                    each language in langs 
+                        option(value=language)= language[0] +language.slice(1)
+                br
             button(type="submit") Update
