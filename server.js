@@ -11,6 +11,9 @@ const pool = dbConnection();
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
@@ -85,6 +88,17 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
+//-------Create Posts--------------
+app.get('/createPost', async (req, res) =>{
+  // Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in');
+  }
+
+  // Render the createPost page with the current user's inforamtion
+  res.render('createPost', {
+      title: 'PawsConnect'});
+});
 
 // ---------------------------------------------
 // POST ROUTES
@@ -108,7 +122,9 @@ app.post('/login', async(req, res) => {
     const storedPassword = user[0].password;
 
     // Compare storedPassword with the provided password
-    if (storedPassword !== password) {
+    const passwordMatch = await bcrypt.compare(password, storedPassword);
+
+    if (!passwordMatch) {
         return res.send('Invalid password');
     }
 
@@ -125,6 +141,9 @@ app.post('/createUser', async(req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
+    const displayName = req.body.display_name;
+    const profilePicture = req.body.profile_picture;
+    const preferredLang = req.body.preferred_lang;
     //const confirmPassword = req.body.confirm_password;
   
     // Check if passwords match
@@ -141,16 +160,24 @@ app.post('/createUser', async(req, res) => {
     }
   
     // SQL query to insert the user into the database
-    var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
-    var values = [email, password, username];
+    var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+    var values = [email, password, username, displayName, profilePicture, preferredLang];
   
     // Execute the query
-     try {
+    try {
+      // Hash and salt the password
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // SQL query to insert the user into the database with hashed password
+      var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
+      var values = [email, hashedPassword, username];
+
+      // Execute the query
       await executeSQL(sql, values);
       res.send('User created successfully!');
-    } catch (error) {
+  } catch (error) {
       return res.send('Error creating user: ' + error.message);
-    }
+  }
   
   });
 
@@ -187,12 +214,20 @@ if (!req.session.user){
 }
 
 // Get the new information from the form submission
-const petID = req.body.pet_id;
+const petID = req.body.pet_id;    // TODO: Remove this input feild we should auot increment unique pet id's for each pet and the users should never see these
 const petName = req.body.pet_name;
 const petType = req.body.pet_type;
 const petBreed = req.body.pet_breed;
 const petProfile = req.body.pet_profile;
 const petBio = req.body.pet_bio;
+
+//Check for existing petID
+let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
+let existingPet = await executeSQL(petCheckSQL, [petID]);
+
+if (existingPet.length > 0) {
+  return res.send("Pet ID is already taken!");
+}
 
 // Insert the information into database table
 let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
@@ -200,7 +235,6 @@ let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profil
 let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
 //Execute the query
-
 try{
   await executeSQL(sql, values);
   res.send('Pet created successfully!');
@@ -209,7 +243,36 @@ try{
 }
 
 });
+//-------------POST Pet Owner Create Post Route----------------------
+app.post('/createPost', async (req, res) => {
+  // Check if user is logged in 
+  if (!req.session.user){
+    return res.send('Not logged in');
+  }
+  
+  const postImage = req.body.posting_image;
+  const postText = req.body.post_text;
+  const stringTagPet = req.body.post_tag;
+  const pet = req.body.pet_petId;
+  const timestamp = new Date().valueOf();
+  // console.log(timestamp);
+  // Insert the information
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
+  
+  //Execute the query
+  
+  try{
+    await executeSQL(sql, values);
+    res.send('post created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating post: ' + error.message);
+  }
+  
+  });
 
+ 
 // ---------- profile user route.---------
 app.get('/profiles', (req, res) => {
   let sql = 'SELECT user_name FROM users_table';
@@ -220,14 +283,31 @@ app.get('/profiles', (req, res) => {
 });
 
 
-// ------- Profile --------------------
-// app.get('/profiles', async(req, res) => {
-//   res.render('profiles', {
-//       title: 'Paws Connect'
-//   });
+
+
+
+// //-------------GET Pet Owner Create Post Route----------------------
+// app.get('/createPost', async (req, res) => {
+//     // Check if user is logged in 
+//   if (!req.session.user){
+//     return res.send('Not logged in');
+//   }
+//   const owner_id = req.session.user.id;
+//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
+//   let params = [owner_id];
+
+//   //Execute the query
+//   try{
+//     let data = await executeSQL(sql, params);
+//     res.render('createPost',{"pets":data[0]})
+    
+//   } catch (error) {
+//     return res.send ('Error in creating data: ' + error.message);
+//   }
+  
+//   // render pet ids 
+//   // res.render('createPost',{"pets":data[0]})
 // });
-
-
 
 
 // ===================================================================

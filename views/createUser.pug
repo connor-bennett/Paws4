@@ -11,6 +11,9 @@ block content
                 label(for="username") Username:
                 input(type="text", id="username", name="username", placeholder="Enter your username", required)
                 br
+            div.form-group 
+                label(for="display-Name") Display Name: 
+                input(type="text", id="display_name", name="display_name", placeholder="Enter your display name", required)
             div.form-group
                 label(for="email") Email: 
                 input(type="email", id="email", name="email", placeholder="Enter Email", required)
@@ -22,5 +25,17 @@ block content
                 label(for="confirm_password") Confirm Password:
                 input(type="password", id="confirm_password", name="confirm_password", placeholder="confirm password", required)
                 br
+            div.form-group 
+                label(for="profile_picture") Profile Picture:
+                input(type="text", id="profile_picture", name="profile_picture", placeholder="URL link for now")
+            div.form-group 
+                //manually inputed for now, can change to take in languages of a translater API
+                - var langs = ["English", "Spanish", "French", "German"]
+                label(for="preferred_lang") Preferred Language:
+                select(name="preferred_lang", id="preferred_lang", required)
+                    each language in langs 
+                        option(value=language)= language[0] +language.slice(1)
+                br
+
             div.form-group
                 button(type="submit") Create
