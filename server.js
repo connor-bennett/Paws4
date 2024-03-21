@@ -85,12 +85,6 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
-// ------- Profile --------------------
-app.get('/profiles', async(req, res) => {
-  res.render('profiles', {
-      title: 'Paws Connect'
-  });
-});
 
 // ---------------------------------------------
 // POST ROUTES
@@ -215,6 +209,24 @@ try{
 }
 
 });
+
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
+  });
+});
+
+
+// ------- Profile --------------------
+// app.get('/profiles', async(req, res) => {
+//   res.render('profiles', {
+//       title: 'Paws Connect'
+//   });
+// });
+
 
 
 
