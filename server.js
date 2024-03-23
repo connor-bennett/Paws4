@@ -58,6 +58,27 @@ app.get('/createUser', async(req, res) => {
     });
   });
 
+// ---------- profile user route.---------
+// ---------- profile user route.---------
+
+
+app.get('/profiles', (req, res) => {
+  //let sql = 'SELECT user_name FROM users_table';
+  if (!req.session.user) {
+    return res.send('You are not logged in');
+
+}
+
+const user = req.session.user;
+
+// Render the updateUser page with the current user's information
+res.render('profiles', {
+  title: 'Paws Connect',
+  user: user // Pass the user information to the template
+});
+
+});
+
 // ------- Update User --------------------
 // GET route for rendering updateUser page
 app.get('/updateUser', async (req, res) => {
