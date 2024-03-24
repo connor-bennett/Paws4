@@ -240,14 +240,14 @@ app.post('/createPost', async (req, res) => {
   
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
-  const stringTagPet = req.body.post_tag;
   const pet = req.body.pet_petId;
   const timestamp = new Date().valueOf();
-  // console.log(timestamp);
+  const visibility = req.body.post_visibility;
+  // console.log(pet);
   // Insert the information
-  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text,pet_id, post_timeStamp, post_visibility)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, pet, timestamp, visibility];
   
   //Execute the query
   
