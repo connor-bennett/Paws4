@@ -272,6 +272,20 @@ app.post('/createPost', async (req, res) => {
   
   });
 
+ 
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
+  });
+});
+
+
+
+
+
 // //-------------GET Pet Owner Create Post Route----------------------
 // app.get('/createPost', async (req, res) => {
 //     // Check if user is logged in 
@@ -294,6 +308,7 @@ app.post('/createPost', async (req, res) => {
 //   // render pet ids 
 //   // res.render('createPost',{"pets":data[0]})
 // });
+
 
 // ===================================================================
 // DATA BASE SET UP
