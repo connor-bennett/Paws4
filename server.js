@@ -88,6 +88,29 @@ app.get('/createPet', async (req, res) =>{
         title: 'PawsConnect'});
 });
 
+//-------Create Posts-------------
+app.get('/createPost', async (req, res) => {
+  // Check if user is logged in 
+if (!req.session.user){
+  return res.send('Not logged in');
+  // res.redirect('/home');
+  
+}
+const owner_id = req.session.user.id;
+let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+let params = [owner_id];
+
+// Execute the query
+try{
+  let data = await executeSQL(sql, params);
+  res.render('createPost',{pets: data})
+  
+} catch (error) {
+  return res.send ('Error in creating data: ' + error.message);
+}
+
+});
+
 // ---------------------------------------------
 // POST ROUTES
 // ---------------------------------------------
@@ -278,28 +301,6 @@ app.post('/createPost', async (req, res) => {
   });
   });
 
-//-------------GET Pet Owner Create Post Route----------------------
-app.get('/createPost', async (req, res) => {
-    // Check if user is logged in 
-  if (!req.session.user){
-    return res.send('Not logged in');
-    // res.redirect('/home');
-    
-  }
-  const owner_id = req.session.user.id;
-  let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
-  let params = [owner_id];
-
-  // Execute the query
-  try{
-    let data = await executeSQL(sql, params);
-    res.render('createPost',{pets: data})
-    
-  } catch (error) {
-    return res.send ('Error in creating data: ' + error.message);
-  }
-  
-});
 
 // ===================================================================
 // DATA BASE SET UP
