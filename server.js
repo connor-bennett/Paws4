@@ -301,6 +301,16 @@ app.post('/createPost', async (req, res) => {
   });
   });
 
+ 
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
+  });
+});
+
 
 // ===================================================================
 // DATA BASE SET UP
