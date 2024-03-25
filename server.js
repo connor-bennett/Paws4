@@ -199,6 +199,7 @@ app.post('/createPet', async (req, res) => {
 // Check if user is logged in (user information exists in session)
 if (!req.session.user){
   return res.send('You are not logged in');
+  
 }
 
 // Get the new information from the form submission
@@ -236,28 +237,45 @@ app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
     return res.send('Not logged in');
+
   }
-  
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
-  const pet = req.body.pet_petId;
+  let pet = req.body.pet_petId;
   const timestamp = new Date().valueOf();
   const visibility = req.body.post_visibility;
   // console.log(pet);
   // Insert the information
-  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text,pet_id, post_timeStamp, post_visibility)
-             VALUES (?,?,?,?,?,?,?)`;
-  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, pet, timestamp, visibility];
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, post_timeStamp, post_visibility)
+             VALUES (?,?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, timestamp, visibility];
   
-  //Execute the query
-  
+  // execute the query 
   try{
-    await executeSQL(sql, values);
-    res.send('post created successfully!');
-  } catch (error) {
+    data = await executeSQL(sql, values);
+
+  } catch(error){
     return res.send ('Error in creating post: ' + error.message);
   }
-  
+  const id = data.insertId;
+  // console.log(id);
+  // if only one pet is selected, wont be an array type
+  if(!Array.isArray(pet)){
+    pet = [pet];
+  }
+  //Execute the 2nd query (multiple pet_ids from pet array)
+  pet.forEach(async pet_id => {
+    try{
+      let sql2 = `INSERT INTO petsTaggedPosts_table (pet_owner_id, pet_id, post_id)
+      VALUES (?,?,?)`;
+      let values2 = [req.session.user.id, pet_id, id];
+      await executeSQL(sql2, values2);
+      res.send('post created successfully!');
+
+    }catch(error){
+      return res.send ('Error in creating post: ' + error.message);
+    }
+  });
   });
 
 //-------------GET Pet Owner Create Post Route----------------------
@@ -265,6 +283,8 @@ app.get('/createPost', async (req, res) => {
     // Check if user is logged in 
   if (!req.session.user){
     return res.send('Not logged in');
+    // res.redirect('/home');
+    
   }
   const owner_id = req.session.user.id;
   let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
