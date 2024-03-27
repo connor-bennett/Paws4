@@ -100,6 +100,30 @@ app.get('/createPost', async (req, res) =>{
       title: 'PawsConnect'});
 });
 
+// ------- transfer Pet Page --------------------
+app.get('/transferPet', async(req, res) => {
+  res.render('transferPet', {
+      title: 'Paws Connect'
+  });
+});
+
+// ------------Messages pet-----------------------
+app.get('/messages', async(req, res) => {
+  // Fetch messages from the database
+  const user_id = req.session.user.id;
+  sql = `SELECT * FROM messages WHERE recipient_id = ?`;
+  values = [user_id];
+
+  let messages = await executeSQL(sql,values);
+
+  // Render Pug template with fetched messages
+  res.render('messages', {
+    title: 'Paws Connect', messages: messages
+  });
+});
+
+
+
 // ---------------------------------------------
 // POST ROUTES
 // ---------------------------------------------
@@ -132,7 +156,7 @@ app.post('/login', async(req, res) => {
     req.session.user = user[0];
 
     // Authentication successful, redirect to dashboard or another page
-    res.redirect('/updateUser');
+    res.redirect('/profiles');
 });
 
 
@@ -272,6 +296,37 @@ app.post('/createPost', async (req, res) => {
   
   });
 
+// ----------POST  INITATE TRANSFER PET  route.----------------
+// POST route for handling Initiate pet transfer
+app.post('/IntitiateTransfer', async (req, res) => {
+  const receivingUser = req.body.username;
+  const pet_name = req.body.petUserName;
+  const sendingUser = req.session.user_name;
+
+  // get user and check if they own the pet
+  let sql1 = 'SELECT * FROM users_table WHERE user_name = ? ';
+  let sql2 = 'SELECT * FROM pets_table WHERE pet_id = ?';
+
+  let values1 = [sendingUser];
+  let values2 = [pet_name];
+
+  try {
+    let recUser = await executeSQL(sql1, values1);
+    let pet = await executeSQL(sql2, values2);
+
+    if (pet.length > 0 && recUser.length > 0) {
+      
+    }
+
+    // Render a success message or confirmation page
+    res.send('Pet transfer initiated successfully');
+  } catch (error) {
+    return res.send('ERROR in Transfer ' + error.message);
+  }
+});
+
+
+
  
 // ---------- profile user route.---------
 app.get('/profiles', (req, res) => {
@@ -282,32 +337,11 @@ app.get('/profiles', (req, res) => {
   });
 });
 
-
-
-
-
-// //-------------GET Pet Owner Create Post Route----------------------
-// app.get('/createPost', async (req, res) => {
-//     // Check if user is logged in 
-//   if (!req.session.user){
-//     return res.send('Not logged in');
-//   }
-//   const owner_id = req.session.user.id;
-//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
-//   let params = [owner_id];
-
-//   //Execute the query
-//   try{
-//     let data = await executeSQL(sql, params);
-//     res.render('createPost',{"pets":data[0]})
-    
-//   } catch (error) {
-//     return res.send ('Error in creating data: ' + error.message);
-//   }
-  
-//   // render pet ids 
-//   // res.render('createPost',{"pets":data[0]})
-// });
+app.post('/messages', (req, res) => {
+  // Handle sending messages
+  // Save message to the database
+  // Redirect back to the message center page
+});
 
 
 // ===================================================================
@@ -322,6 +356,7 @@ function executeSQL(sql, params) {
       });
     });
   }
+
   
   // ---------------DataBase Connection-------------------------
   function dbConnection(){
