@@ -1,0 +1,27 @@
+extends default 
+block content 
+
+    .container
+        .row.justify-content-center
+        .col-md-6
+            h1.title.text-center=title 
+            h3.text-center Message Center
+
+            form(action="/sendmessage", method="post")
+                label(for="recipient") Recipient:
+                input(type="text", id="recipient", name="recipient", required)
+                br
+                label(for="message") Message:
+                textarea(id="message", name="message", rows="4", required)
+                br
+                input(type="submit", value="Send Message")
+
+            br
+            br
+            .scroll-box
+                if messages.length > 0
+                    ul
+                        each message in messages
+                            li #{message.sender}: #{message.content}
+                else
+                    p No messages
