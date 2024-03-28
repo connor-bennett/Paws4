@@ -1,0 +1,26 @@
+extends default
+block content 
+    h1= title 
+        br
+        br
+        br
+        h3.text-center Update Pet Information! 
+            ul 
+                li Pet ID: #{pet.pet_id}
+                li Pet Name: #{pet.pet_name} 
+        br
+        br
+        hr
+        h3.text-center
+            a(href="/removePet?pet_id=#{pet.pet_id}") Delete Pet Profile 
+            a(href="/") Transfer Pet Profile
+        br
+        hr
+        h3.text-center Change Pet Information Below:
+
+        form(action='/updatePet', method="POST")
+            div.form-group 
+                label(for="new_pet_name") New Pet Name: 
+                input(type="text", id="new_pet_name", name="new_pet_name", required, placeholder=pet.pet_name)
+                br
+            button(type="submit") Update

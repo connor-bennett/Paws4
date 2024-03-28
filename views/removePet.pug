@@ -1,0 +1,16 @@
+extends default 
+block content 
+    h1=title 
+    br
+    br
+    hr
+    h3.text-center Are you sure you want to delete the following pet profile?
+
+    // show pet profile information
+    
+    button(type="button", onclick="removePet") Yes, Delete.
+    a(href="/updatePet")
+         button(type="button") No, Cancel.
+    a(href="/")
+        button(type="button") No, Transfer.
+
