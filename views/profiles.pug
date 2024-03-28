@@ -44,7 +44,10 @@ html
       <p style="text-align: center"> pet profiles here</p>
 
     #profileInfo
-      <h2 style="text-align: center"> UserInfo</h2>
+      <h2 style="text-align: center"> UserInfo
+       a(href="/updateUser") 
+        img(src="/images/edit.png", alt="edit profile" width='20')
+      </h2>
       img(src='/images/pawsLogo.png' width="200" height="200" align="center" style="display: block; margin-left: auto; margin-right: auto;")
       <br>
       p User Name: #{user_name}

@@ -23,9 +23,9 @@ block content
                 label(for="pet_petId") Enter pet id:
                 input(type="text", id="pet_petId", name="pet_petId", placeholder="Enter pet id!")
                 br
-            //- div.form-group 
-            //-     label(for="pet_petId") Pet Type:
-            //-     select
-            //-         each i in pets
-            //-             option(value=i.pet_id, selected=(i.pet_id))
+            div.form-group 
+                label(for="pet_petId") Pet Type:
+                select
+                    each i in pets
+                        option(value=i.pet_id)= i.pet_id
             button(type="submit") Create Post
