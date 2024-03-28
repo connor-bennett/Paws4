@@ -1,0 +1,15 @@
+extends default 
+block content 
+
+    h1.title.text-center=title 
+        
+        form(action="/IntitiateTransfer", method="POST").login-form
+            label(for="username") Username:
+            input(type="text", id="username", name="username", required)
+            br
+            br
+            label(for="username") Pet Username:
+            input(type="text", id="petUserName", name="petUserName", required)
+            br 
+            br
+            input(type="submit", value="Submit", id="submitTransferRequest").submit-login

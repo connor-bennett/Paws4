@@ -123,6 +123,28 @@ try{
 
 });
 
+// ------- transfer Pet Page --------------------
+app.get('/transferPet', async(req, res) => {
+  res.render('transferPet', {
+      title: 'Paws Connect'
+  });
+});
+
+// ------------Messages pet-----------------------
+app.get('/messages', async(req, res) => {
+  // Fetch messages from the database
+  const user_id = req.session.user.id;
+  sql = `SELECT * FROM messages WHERE recipient_id = ?`;
+  values = [user_id];
+
+  let messages = await executeSQL(sql,values);
+
+  // Render Pug template with fetched messages
+  res.render('messages', {
+    title: 'Paws Connect', messages: messages
+  });
+});
+
 
 
 // ---------------------------------------------
@@ -157,7 +179,7 @@ app.post('/login', async(req, res) => {
     req.session.user = user[0];
 
     // Authentication successful, redirect to dashboard or another page
-    res.redirect('/updateUser');
+    res.redirect('/profiles');
 });
 
 
@@ -184,10 +206,7 @@ app.post('/createUser', async(req, res) => {
       return res.send("Email already exists.");
     }
   
-    // // SQL query to insert the user into the database
-    // var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
-    // var values = [email, password, username, displayName, profilePicture, preferredLang];
-  
+   
     // Execute the query
     try {
       // Hash and salt the password
@@ -345,6 +364,53 @@ app.post('/createPost', async (req, res) => {
   
   });
 
+// ----------POST  INITATE TRANSFER PET  route.----------------
+// POST route for handling Initiate pet transfer
+app.post('/IntitiateTransfer', async (req, res) => {
+  const receivingUser = req.body.username;
+  const pet_name = req.body.petUserName;
+  const sendingUser = req.session.user_name;
+
+  // get user and check if they own the pet
+  let sql1 = 'SELECT * FROM users_table WHERE user_name = ? ';
+  let sql2 = 'SELECT * FROM pets_table WHERE pet_id = ?';
+
+  let values1 = [sendingUser];
+  let values2 = [pet_name];
+
+  try {
+    let recUser = await executeSQL(sql1, values1);
+    let pet = await executeSQL(sql2, values2);
+
+    if (pet.length > 0 && recUser.length > 0) {
+      
+    }
+
+    // Render a success message or confirmation page
+    res.send('Pet transfer initiated successfully');
+  } catch (error) {
+    return res.send('ERROR in Transfer ' + error.message);
+  }
+});
+
+
+
+ 
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
+  });
+});
+
+app.post('/messages', (req, res) => {
+  // Handle sending messages
+  // Save message to the database
+  // Redirect back to the message center page
+});
+
 
 // ===================================================================
 // DATA BASE SET UP
@@ -358,6 +424,7 @@ function executeSQL(sql, params) {
       });
     });
   }
+
   
   // ---------------DataBase Connection-------------------------
   function dbConnection(){
