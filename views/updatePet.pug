@@ -4,7 +4,9 @@ block content
         br
         br
         br
-        h3.text-center Update Pet Information! 
+        h3.text-center Update Pet Information!
+         - var petID = pet.pet_id;
+         - console.log(petID);
             ul 
                 li Pet ID: #{pet.pet_id}
                 li Pet Name: #{pet.pet_name} 
@@ -12,7 +14,7 @@ block content
         br
         hr
         h3.text-center
-            a(href="/removePet?pet_id=#{pet.pet_id}") Delete Pet Profile 
+            a(href="/removePet?pet_id="+petID) Delete Pet Profile 
             a(href="/") Transfer Pet Profile
         br
         hr

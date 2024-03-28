@@ -98,6 +98,46 @@ app.get('/createPet', async (req, res) =>{
     res.render('createPet', {
         title: 'Paws Connect'});
 });
+//-----------Manage Pets ---------------
+app.get("/updatePet", async (req, res) =>{
+  //Check if user is Logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in!');
+  }
+
+  //hard coding to get first pet from ownsers list for now
+  
+  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
+
+  try{
+    let data = await executeSQL(sql, req.session.user.id);
+    //Render route
+    res.render('updatePet',{
+      title: 'Paws Connect',
+      pet: data[1]})
+  } catch (error){
+    return res.send ("Error: " + error.message);
+  }
+});
+//-----------Remove Pets-------------
+app.get("/removePet", async (req,res) =>{
+  // get the petID of the current pet in consideration
+  let pet_id = req.query.pet_id;
+  //get information from petID
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+
+  try{
+    let data = await executeSQL(sql, pet_id);
+    // render route 
+       console.log(data);
+    res.render('removePet', {
+      pet: data})
+
+  } catch (error) {
+    return res.send("Error: " + error.message);
+  }
+
+});
 
 //-------------Pet Owner Create Post Route----------------------
 app.get('/createPost', async (req, res) => {
