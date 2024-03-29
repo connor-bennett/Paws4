@@ -15,6 +15,7 @@ block content
                 label(for="post_text") Text:
                 input(type="text", id="post_text", name="post_text", placeholder="Type your post!", required)
                 br
+
             //- div.form-group 
             //-     label(for="pet_petId") Select Pet Username:
             //-     select(name="pet_petId", id="pet_petId", required)
@@ -35,4 +36,19 @@ block content
                     each visibility in types
                         option(value=visibility)=visibility 
                 br
+
+            div.form-group
+                label(for="post_tag") Tag your pet!
+                input(type="text", id="post_tag", name="post_tag", placeholder="Enter pet name!")
+                br
+            div.form-group
+                label(for="pet_petId") Enter pet id:
+                input(type="text", id="pet_petId", name="pet_petId", placeholder="Enter pet id!")
+                br
+            div.form-group 
+                label(for="pet_petId") Pet Type:
+                select
+                    each i in pets
+                        option(value=i.pet_id)= i.pet_id
+
             button(type="submit") Create Post

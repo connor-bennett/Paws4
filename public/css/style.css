@@ -159,6 +159,16 @@ html {
     border: 2px solid black;
     background-color: #ffffff;
   }
+
+  /* --------------------------------------------------------------- */
+  /*  MESSAGES STYLES */
+  /* --------------------------------------------------------------- */
+  .scroll-box {
+    height: 200px; /* Set the height of the scroll box */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ccc; 
+  }
+  
   /* --------------------------------------------------------------- */
   /*  MISC IMPORTED STYLES */
   /* --------------------------------------------------------------- */
