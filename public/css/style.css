@@ -68,7 +68,7 @@ html {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
   }
 
-    /* --------------------------------------------------------------- */
+  /* --------------------------------------------------------------- */
   /*  profiles */
   /* --------------------------------------------------------------- */
   #headerImage
@@ -101,11 +101,13 @@ html {
     position: absolute;
     top: 110px;
     width: 65%;
-    height:15%;
+    height:auto;
     padding: 5px;
     left: 240px;
     border: 2px solid black;
     background-color: #ffffff;
+    
+    justify-content: center;
   }
 
   #posts
@@ -113,12 +115,26 @@ html {
     list-style-position: inside;
     position: absolute;
     top: 300px;
-    width: 65%;
-    height:15%;
+    width: auto;
     padding: 5px;
-    left: 240px;
+    left: 650px;
     border: 2px solid black;
     background-color: #ffffff;
+    text-align: center;
+    height:auto;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #postData
+  {
+    position: absolute;
+    padding: 5px;
+    border: 2px solid black;
+    background-color: #ffffff;
+    text-align: center;
+    
+    
   }
 
   #profileInfo
@@ -160,7 +176,12 @@ html {
     background-color: #ffffff;
   }
 
-
+  .postContainer {
+    border: 2px solid #ccc;
+    border-color: black;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
 
   /* --------------------------------------------------------------- */
   /*  MISC IMPORTED STYLES */

@@ -61,23 +61,39 @@ app.get('/createUser', async(req, res) => {
 // ---------- profile user route.---------
 // ---------- profile user route.---------
 
-
-app.get('/profiles', (req, res) => {
-  //let sql = 'SELECT user_name FROM users_table';
+app.get('/profiles', async (req, res) => {
   if (!req.session.user) {
-    return res.send('You are not logged in');
+      return res.send('You are not logged in');
+  }
 
-}
+  const user = req.session.user;
 
-const user = req.session.user;
+  // SQL query to fetch user information
+  let sql = "SELECT * FROM users_table WHERE id = ?";
+  let userData = await executeSQL(sql, [user.id]);
 
-// Render the updateUser page with the current user's information
-res.render('profiles', {
-  title: 'Paws Connect',
-  user: user // Pass the user information to the template
+  // SQL query to fetch posts for the user
+  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  let postsData = await executeSQL(sql, [user.user_name]);
+  let postCount = postsData.length;
+
+  sql = "SELECT * FROM pets_table WHERE owner_id = ?"; // select everything from table
+  let petData = await executeSQL(sql, [user.id]);
+
+  res.render('profiles', {
+      title: 'Paws Connect',
+      user: user,
+      userData: userData[0], // Pass the user data from table to the template
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the from table to template
+      petData: petData,
+  });
 });
 
-});
+
+
+
+
 
 // ------- Update User --------------------
 // GET route for rendering updateUser page
