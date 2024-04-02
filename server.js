@@ -77,7 +77,8 @@ app.get('/profiles', async (req, res) => {
   let postsData = await executeSQL(sql, [user.user_name]);
   let postCount = postsData.length;
 
-  sql = "SELECT * FROM pets_table WHERE owner_id = ?"; // select everything from table
+  // SQL query to fetch pets for the user
+  sql = "SELECT * FROM pets_table WHERE owner_id = ?";
   let petData = await executeSQL(sql, [user.id]);
 
   res.render('profiles', {
@@ -85,8 +86,8 @@ app.get('/profiles', async (req, res) => {
       user: user,
       userData: userData[0], // Pass the user data from table to the template
       postsData: postsData, // Pass the user's posts from table to the template
-      postCount: postCount, // Pass the post count to the from table to template
-      petData: petData,
+      postCount: postCount, // Pass the post count to the template
+      petData: petData, // Pass the user's pets from table to the template
   });
 });
 
