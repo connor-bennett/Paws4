@@ -120,6 +120,7 @@ try{
 } catch (error) {
   return res.send ('Error in creating data: ' + error.message);
 }
+});
 
 //-----------Manage Pets ---------------
 app.get("/updatePet", async (req, res) =>{
@@ -176,7 +177,7 @@ let params = [owner_id];
 //Execute the query
 try{
   let data = await executeSQL(sql, params);
-  console.log(data)
+  // console.log(data)
   res.render('createPost',{
     title: 'Paws Connect',
     pets: data})
