@@ -17,6 +17,7 @@ const saltRounds = 10;
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
+const { exec } = require('child_process');
 
 // ===================================================================
 // MIDDLEWARE
@@ -111,18 +112,27 @@ app.get('/transferPet', async(req, res) => {
 app.get('/messages', async(req, res) => {
   // Fetch messages from the database
   const user_id = req.session.user.id;
-  sql = `SELECT * FROM messages WHERE recipient_id = ?`;
+
+  sql = `SELECT messages.*, users_table.user_name AS sender_name
+  FROM messages
+  JOIN users_table ON messages.sender_id = users_table.id
+  WHERE messages.receiver_id = ?`;
   values = [user_id];
 
-  let messages = await executeSQL(sql,values);
+  // Get recipient from the clicked message, if any
+  const clickedRecipient = req.query.recipient;
 
+  // Set currentRecipient based on the clicked recipient
+  const currentRecipient = clickedRecipient ? clickedRecipient : "";
+
+let messages = await executeSQL(sql, values);
   // Render Pug template with fetched messages
   res.render('messages', {
-    title: 'Paws Connect', messages: messages
+    title: 'Paws Connect', 
+    messages: messages,
+    currentRecipient: currentRecipient
   });
 });
-
-
 
 // ---------------------------------------------
 // POST ROUTES
@@ -151,6 +161,8 @@ app.post('/login', async(req, res) => {
     if (!passwordMatch) {
         return res.send('Invalid password');
     }
+
+    console.log('User information:', user[0]);
 
     // Store the user's information in the session
     req.session.user = user[0];
@@ -299,35 +311,48 @@ app.post('/createPost', async (req, res) => {
 // ----------POST  INITATE TRANSFER PET  route.----------------
 // POST route for handling Initiate pet transfer
 app.post('/IntitiateTransfer', async (req, res) => {
-  const receivingUser = req.body.username;
-  const pet_name = req.body.petUserName;
-  const sendingUser = req.session.user_name;
+  const receivingUsername = req.body.username;
+  const petName = req.body.petUserName;
+  const sendingUser = req.session.user.user_name;
 
-  // get user and check if they own the pet
-  let sql1 = 'SELECT * FROM users_table WHERE user_name = ? ';
-  let sql2 = 'SELECT * FROM pets_table WHERE pet_id = ?';
+  console.log('Session:', req.session);
+  console.log('Sending user: ', sendingUser);
 
-  let values1 = [sendingUser];
-  let values2 = [pet_name];
+
+  // Get sender and receiver IDs
+  let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
+  let values1 = [sendingUser, receivingUsername];
+
+  // Get pet ID
+  let sql2 = 'SELECT id FROM pets_table WHERE pet_name = ?';
+  let values2 = [petName];
 
   try {
-    let recUser = await executeSQL(sql1, values1);
-    let pet = await executeSQL(sql2, values2);
+    // Execute queries
+    let petResult = await executeSQL(sql2, values2);
+    let senderResult = await executeSQL(sql1, [sendingUser]);
+    let receiverResult = await executeSQL(sql1, [receivingUsername]);
 
-    if (pet.length > 0 && recUser.length > 0) {
-      
-    }
-
+    // Extract IDs
+    let senderId = senderResult[0]?.id;
+    let receiverId = receiverResult[0]?.id;
+    let petId = petResult[0].id;
+  
+    // Insert into messages table
+    let sql3 = `INSERT INTO messages (sender_id, receiver_id, message_content, is_transfer, pet_id)
+                VALUES (?, ?, ?, ?, ?)`;
+    let values3 = [senderId, receiverId, 'Transfer pet?', true, petId];
+    await executeSQL(sql3, values3);
+  
     // Render a success message or confirmation page
-    res.send('Pet transfer initiated successfully');
+    res.send('Pet transfer initiated successfully' + "Send " + senderId + " rec " + receiverId );
   } catch (error) {
     return res.send('ERROR in Transfer ' + error.message);
   }
+  
 });
 
 
-
- 
 // ---------- profile user route.---------
 app.get('/profiles', (req, res) => {
   let sql = 'SELECT user_name FROM users_table';
@@ -337,10 +362,35 @@ app.get('/profiles', (req, res) => {
   });
 });
 
-app.post('/messages', (req, res) => {
-  // Handle sending messages
-  // Save message to the database
-  // Redirect back to the message center page
+// ---------- Send message Get route.---------
+app.post('/sendmessage', async (req, res) => {
+   // Extract data from the request body
+   const recipient_username = req.body.recipient;
+   const message = req.body.message;
+    
+   // Assuming you have session handling middleware to get the user ID
+   const sender_id = req.session.user.id;
+   console.log(sedner_id);
+
+   const sql1 = `SELECT id FROM users_table WHERE user_name = ?`;
+   const values1 = [recipient_username];
+
+   let result = await executeSQL(sql1, values1);
+   let user_id = result[0].id;
+
+   // Insert the message into the database
+   const sql = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
+   const values = [sender_id, user_id, message];
+
+   try {
+       // Execute the SQL query to insert the message
+       await executeSQL(sql, values);
+       res.send("Message Sent");
+   } catch (error) {
+       // Handle errors appropriately, such as rendering an error page or sending an error response
+       console.error("Error sending message:", error);
+       res.status(500).send("Error sending message. Please try again later.");
+   }
 });
 
 

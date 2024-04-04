@@ -22,6 +22,22 @@ block content
                 if messages.length > 0
                     ul
                         each message in messages
-                            li #{message.sender}: #{message.content}
+                            li
+                                | #{message.sender_name}: 
+                                span.message-content #{message.message_content}
+                                button(type="button" class="reply-btn" data-recipient="#{message.sender_name}") Reply
                 else
                     p No messages
+
+    #chat-window.modal
+        .modal-content
+            .modal-header
+                h5.modal-title Chat with #{currentRecipient}
+                button.close(type="button" data-dismiss="modal") ×
+            .modal-body
+                ul#chat-messages
+            .modal-footer
+                textarea#reply-message(rows="3" placeholder="Type your message...")
+                button#send-reply-btn(type="button") Send
+
+    script(src="/JS/reply.js")
