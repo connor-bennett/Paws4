@@ -26,6 +26,7 @@ html
           a.nav-link(href='/createPost') Create Post
         li.nav-item
           a.nav-link(href='/profileSearch') Search for users
+          
     #profilePics 
       h2(style="text-align: center;") Pictures 
       each pet in petData
@@ -41,6 +42,12 @@ html
           .postData
             img(src=post.posting_image, width="400", height="400", alt="Post image")
             p= post.post_text
+
+        li.nav-item 
+          a.nav-link(href='/transferPet') Transfer Pet
+        li.nav-item 
+          a.nav-link(href="/messages") Messages
+
     #friends
       <h2 style="text-align: center"> Friends</h2>
       <p style="text-align: center"> friends here</p>

@@ -1,18 +1,21 @@
 doctype html
 html
     head
-      meta(charset='UTF-8')
-      meta(name='viewport' content='width=device-width, initial-scale=1.0')
-      meta(http-equiv='X-UA-Compatible' content='ie=edge')
-      title= title
-      link(rel='stylesheet' type="text/css" href='/css/style.css')
+        meta(charset='UTF-8')
+        meta(name='viewport' content='width=device-width, initial-scale=1.0')
+        meta(http-equiv='X-UA-Compatible' content='ie=edge')
+        title= title
+        link(rel='stylesheet' type="text/css" href='/css/style.css')
+        link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css')
+        link(rel='stylesheet', type="text/css", href='/css/style.css')
+        script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+        script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
+
+
     body
         nav.navbar
+        ul.navbar-nav
             a.navbar-brand(href='/') Home
-            button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
-                span.navbar-toggler-icon
-            #navbarNav.collapse.navbar-collapse
-                ul.navbar-nav
             li.nav-item
                 a.nav-link(href='/login') Login
             li.nav-item
@@ -20,8 +23,12 @@ html
             li.nav-item
                 a.nav-link(href='/createPet') Create Pet Profile
             li.nav-item
+                a.nav-link(href='/profiles') Users Profile
+            li.nav-item
                 a.nav-link(href='/createPost') Create Post
             li.nav-item
                 a.nav-link(href='/profiles') Users Profile
+            li.nav-item 
+                a.nav-link(href='/updatePet') Update Pet
             
             block content

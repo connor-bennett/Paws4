@@ -17,6 +17,7 @@ const saltRounds = 10;
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
+const { exec } = require('child_process');
 
 // ===================================================================
 // MIDDLEWARE
@@ -113,7 +114,18 @@ app.get('/updateUser', async (req, res) => {
         user: user // Pass the user information to the template
     });
 });
+//------Update/Change Password------------
+app.get('/updatePassword', async (req, res) =>{
+  //Check if user is logged in (user information exists in session)
+    if(!req.session.user){
+      return res.send("You are not logged in");
+    }
 
+    //Render the updatePasswords page
+    res.render('updatePassword',{
+      title: "Paws Connect"
+    });
+});
 //-------Create Pets--------------
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
@@ -121,21 +133,128 @@ app.get('/createPet', async (req, res) =>{
       return res.send('You are not logged in');
     }
 
-    // Render the createPet page with the current user's inforamtion
+    // Render the createPet page 
     res.render('createPet', {
-        title: 'PawsConnect'});
+        title: 'Paws Connect'});
 });
-
-//-------Create Posts--------------
-app.get('/createPost', async (req, res) =>{
-  // Check if user is logged in (user information exists in session)
+//-----------Manage Pets ---------------
+app.get("/updatePet", async (req, res) =>{
+  //Check if user is Logged in (user information exists in session)
   if (!req.session.user){
-    return res.send('You are not logged in');
+    return res.send('You are not logged in!');
   }
 
-  // Render the createPost page with the current user's inforamtion
-  res.render('createPost', {
-      title: 'PawsConnect'});
+  //hard coding to get first pet from ownsers list for now
+  
+  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
+
+  try{
+    let data = await executeSQL(sql, req.session.user.id);
+    //Render route
+    res.render('updatePet',{
+      title: 'Paws Connect',
+      pet: data[0]})
+  } catch (error){
+    return res.send ("Error: " + error.message);
+  }
+});
+//-----------Remove Pets-------------
+app.get("/removePet", async (req,res) =>{
+  //Check if user is logged in 
+  if (!req.session.user){
+    return res.send("You are not logged in!");
+  }
+
+  // get the petID of the current pet in consideration
+  let pet_id = req.query.pet_id;
+  //get information from petID
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+
+  try{
+    let data = await executeSQL(sql, pet_id);
+    // render route 
+  
+    res.render('removePet', {
+      title: 'Paws Connect',
+      pet: data[0]})
+
+  } catch (error) {
+    return res.send("Error: " + error.message);
+  }
+
+});
+//-----------Deleting Pet from Account--------------
+app.get('/deletePet', async (req, res)=>{
+  let pet_id = req.query.pet_id;
+  
+  // Delete the pet account from table
+  let sql = "DELETE FROM pets_table WHERE pet_id = ?";
+
+  try{
+    //execute query
+    await executeSQL(sql, pet_id);
+    //redirect user to their profile
+    res.redirect('profiles');
+  } catch (error){
+    return res.send('Error: ' + error.message);
+  }
+});
+
+//-------------Pet Owner Create Post Route----------------------
+app.get('/createPost', async (req, res) => {
+  // Check if user is logged in 
+if (!req.session.user){
+  return res.send('Not logged in');
+}
+const owner_id = req.session.user.id;
+let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+let params = [owner_id];
+
+//Execute the query
+try{
+  let data = await executeSQL(sql, params);
+  console.log(data)
+  res.render('createPost',{
+    title: 'Paws Connect',
+    pets: data})
+  
+} catch (error) {
+  return res.send ('Error in creating data: ' + error.message);
+}
+
+});
+
+// ------- transfer Pet Page --------------------
+app.get('/transferPet', async(req, res) => {
+  res.render('transferPet', {
+      title: 'Paws Connect'
+  });
+});
+
+// ------------Messages pet-----------------------
+app.get('/messages', async(req, res) => {
+  // Fetch messages from the database
+  const user_id = req.session.user.id;
+
+  sql = `SELECT messages.*, users_table.user_name AS sender_name
+  FROM messages
+  JOIN users_table ON messages.sender_id = users_table.id
+  WHERE messages.receiver_id = ?`;
+  values = [user_id];
+
+  // Get recipient from the clicked message, if any
+  const clickedRecipient = req.query.recipient;
+
+  // Set currentRecipient based on the clicked recipient
+  const currentRecipient = clickedRecipient ? clickedRecipient : "";
+
+let messages = await executeSQL(sql, values);
+  // Render Pug template with fetched messages
+  res.render('messages', {
+    title: 'Paws Connect', 
+    messages: messages,
+    currentRecipient: currentRecipient
+  });
 });
 
 // ---------------------------------------------
@@ -166,11 +285,13 @@ app.post('/login', async(req, res) => {
         return res.send('Invalid password');
     }
 
+    console.log('User information:', user[0]);
+
     // Store the user's information in the session
     req.session.user = user[0];
 
     // Authentication successful, redirect to dashboard or another page
-    res.redirect('/updateUser');
+    res.redirect('/profiles');
 });
 
 
@@ -197,18 +318,15 @@ app.post('/createUser', async(req, res) => {
       return res.send("Email already exists.");
     }
   
-    // SQL query to insert the user into the database
-    var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
-    var values = [email, password, username, displayName, profilePicture, preferredLang];
-  
+   
     // Execute the query
     try {
       // Hash and salt the password
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // SQL query to insert the user into the database with hashed password
-      var sql = "INSERT INTO users_table (email, password, user_name) VALUES (?, ?, ?)";
-      var values = [email, hashedPassword, username];
+      var sql = "INSERT INTO users_table (email, password, user_name, display_name, profile_img, language) VALUES (?, ?, ?, ?, ?, ?)";
+      var values = [email, hashedPassword, username, displayName, profilePicture, preferredLang];
 
       // Execute the query
       await executeSQL(sql, values);
@@ -227,15 +345,20 @@ app.post('/updateUser', async (req, res) => {
     }
 
     // Get the new information from the form submission
-    const newEmail = req.body.newEmail;
-    const newPassword = req.body.newPassword;
+    const newEmail = req.body.new_email;
+    const newDisplayName = req.body.new_display_name;
+    const newProfPic = req.body.new_profile_picture;
+    const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
-    let sql = "UPDATE users_table SET email = ?, password = ? WHERE id = ?";
+    let sql = "UPDATE users_table SET email = ?, display_name = ?, profile_img = ?, language = ? WHERE id = ?";
     try {
-        await executeSQL(sql, [newEmail, newPassword, req.session.user.id]);
+        await executeSQL(sql, [newEmail, newDisplayName, newProfPic, newLang, req.session.user.id]);
         // Update the user information in the session as well
         req.session.user.email = newEmail;
+        req.session.user.display_name = newDisplayName;
+        req.session.user.profile_img = newProfPic;
+        req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
         res.send('User information updated successfully');
@@ -244,43 +367,109 @@ app.post('/updateUser', async (req, res) => {
     }
 });
 
-//-------------POST Create Pet Profile Route----------------------
-app.post('/createPet', async (req, res) => {
-// Check if user is logged in (user information exists in session)
-if (!req.session.user){
-  return res.send('You are not logged in');
-}
+//------------POST Update Password Route
+app.post('/updatePassword', async (req, res) => {
+  //Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+      return res.send("You are not logged in");
+  }
 
-// Get the new information from the form submission
-const petID = req.body.pet_id;    // TODO: Remove this input feild we should auot increment unique pet id's for each pet and the users should never see these
-const petName = req.body.pet_name;
-const petType = req.body.pet_type;
-const petBreed = req.body.pet_breed;
-const petProfile = req.body.pet_profile;
-const petBio = req.body.pet_bio;
+  //Get new information from the form submition
+  const currentPassword = req.body.current_password;
+  const newPassword = req.body.new_password;
+  const confirmPassword = req.body.confirm_new_password;
 
-//Check for existing petID
-let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
-let existingPet = await executeSQL(petCheckSQL, [petID]);
+  //Compare current password with stored password to authorize change
+   const storedPassword = req.session.user.password;
+   const passwordAuth = await bcrypt.compare(currentPassword, storedPassword);
 
-if (existingPet.length > 0) {
-  return res.send("Pet ID is already taken!");
-}
+   if (!passwordAuth){
+      return res.send("Invalid Current Password");
+   }
 
-// Insert the information into database table
-let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
-           VALUES (?,?,?,?,?,?,?)`;
-let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
+   //Compare the new passwords to eachother
+   if (newPassword !== confirmPassword){
+      return res.send('New passwords do not match');
+   }
 
-//Execute the query
-try{
-  await executeSQL(sql, values);
-  res.send('Pet created successfully!');
-} catch (error) {
-  return res.send ('Error in creating pet: ' + error.message);
-}
+   //Update the database table
+   try {
+    //Hash and salt the password
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // SQL query to update users password
+      let sql = "UPDATE users_table SET password = ? WHERE id = ?";
+      let params = [hashedPassword, req.session.user.id];
+
+      //Execute the query
+      await executeSQL(sql, params);
+      res.send('Password Successfully Updated!');
+  } catch (error) {
+    return res.send("Error updating password: " + error.message);
+  }
 
 });
+
+//-------------POST Create Pet Profile Route----------------------
+app.post('/createPet', async (req, res) => {
+  // Check if user is logged in (user information exists in session)
+  if (!req.session.user){
+    return res.send('You are not logged in');
+  }
+
+  // Get the new information from the form submission
+  const petID = req.body.pet_id;    
+  const petName = req.body.pet_name;
+  const petType = req.body.pet_type;
+  const petBreed = req.body.pet_breed;
+  const petProfile = req.body.pet_profile;
+  const petBio = req.body.pet_bio;
+  
+  //Check for existing petID
+  let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let existingPet = await executeSQL(petCheckSQL, [petID]);
+
+  if (existingPet.length > 0) {
+    return res.send("Pet ID is already taken!");
+  }
+
+  // Insert the information into database table
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
+
+  //Execute the query
+  try{
+    await executeSQL(sql, values);
+    res.send('Pet created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating pet: ' + error.message);
+  }
+ });
+
+ //-------------POST Update Pet Profile Route-------------------------
+ app.post('/updatePet', async (req,res) => {
+  //Check if user is logged in
+  if (!req.session.user){
+    return res.send("Not logged in");
+  }
+  const petID = req.body.pet_id;
+  const newName = req.body.new_pet_name;
+  const newType = req.body.new_pet_type;
+  const newBreed = req.body.new_pet_breed;
+  const newBio = req.body.new_pet_bio;
+
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newBio, petID];
+
+  try{
+    await executeSQL(sql, values);
+    res.send('Pet has been updated!');
+  } catch (error){
+    return res.send('Error in updateing pet: ' + error.message);
+  }
+
+ });
 //-------------POST Pet Owner Create Post Route----------------------
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
@@ -310,28 +499,91 @@ app.post('/createPost', async (req, res) => {
   
   });
 
-// //-------------GET Pet Owner Create Post Route----------------------
-// app.get('/createPost', async (req, res) => {
-//     // Check if user is logged in 
-//   if (!req.session.user){
-//     return res.send('Not logged in');
-//   }
-//   const owner_id = req.session.user.id;
-//   let sql = "SELECT owner_id,pet_name FROM pets_table WHERE owner_id = ?";
-//   let params = [owner_id];
+// ----------POST  INITATE TRANSFER PET  route.----------------
+// POST route for handling Initiate pet transfer
+app.post('/IntitiateTransfer', async (req, res) => {
+  const receivingUsername = req.body.username;
+  const petName = req.body.petUserName;
+  const sendingUser = req.session.user.user_name;
 
-//   //Execute the query
-//   try{
-//     let data = await executeSQL(sql, params);
-//     res.render('createPost',{"pets":data[0]})
-    
-//   } catch (error) {
-//     return res.send ('Error in creating data: ' + error.message);
-//   }
+  console.log('Session:', req.session);
+  console.log('Sending user: ', sendingUser);
+
+
+  // Get sender and receiver IDs
+  let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
+  let values1 = [sendingUser, receivingUsername];
+
+  // Get pet ID
+  let sql2 = 'SELECT id FROM pets_table WHERE pet_name = ?';
+  let values2 = [petName];
+
+  try {
+    // Execute queries
+    let petResult = await executeSQL(sql2, values2);
+    let senderResult = await executeSQL(sql1, [sendingUser]);
+    let receiverResult = await executeSQL(sql1, [receivingUsername]);
+
+    // Extract IDs
+    let senderId = senderResult[0]?.id;
+    let receiverId = receiverResult[0]?.id;
+    let petId = petResult[0].id;
   
-//   // render pet ids 
-//   // res.render('createPost',{"pets":data[0]})
-// });
+    // Insert into messages table
+    let sql3 = `INSERT INTO messages (sender_id, receiver_id, message_content, is_transfer, pet_id)
+                VALUES (?, ?, ?, ?, ?)`;
+    let values3 = [senderId, receiverId, 'Transfer pet?', true, petId];
+    await executeSQL(sql3, values3);
+  
+    // Render a success message or confirmation page
+    res.send('Pet transfer initiated successfully' + "Send " + senderId + " rec " + receiverId );
+  } catch (error) {
+    return res.send('ERROR in Transfer ' + error.message);
+  }
+  
+});
+
+
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
+  });
+});
+
+// ---------- Send message Get route.---------
+app.post('/sendmessage', async (req, res) => {
+   // Extract data from the request body
+   const recipient_username = req.body.recipient;
+   const message = req.body.message;
+    
+   // Assuming you have session handling middleware to get the user ID
+   const sender_id = req.session.user.id;
+   console.log(sedner_id);
+
+   const sql1 = `SELECT id FROM users_table WHERE user_name = ?`;
+   const values1 = [recipient_username];
+
+   let result = await executeSQL(sql1, values1);
+   let user_id = result[0].id;
+
+   // Insert the message into the database
+   const sql = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
+   const values = [sender_id, user_id, message];
+
+   try {
+       // Execute the SQL query to insert the message
+       await executeSQL(sql, values);
+       res.send("Message Sent");
+   } catch (error) {
+       // Handle errors appropriately, such as rendering an error page or sending an error response
+       console.error("Error sending message:", error);
+       res.status(500).send("Error sending message. Please try again later.");
+   }
+});
+
 
 // ===================================================================
 // DATA BASE SET UP
@@ -345,6 +597,7 @@ function executeSQL(sql, params) {
       });
     });
   }
+
   
   // ---------------DataBase Connection-------------------------
   function dbConnection(){
