@@ -189,11 +189,23 @@ app.get('/messages', async(req, res) => {
   const currentRecipient = clickedRecipient ? clickedRecipient : "";
 
 let messages = await executeSQL(sql, values);
+
   // Render Pug template with fetched messages
   res.render('messages', {
     title: 'Paws Connect', 
     messages: messages,
     currentRecipient: currentRecipient
+  });
+});
+
+
+
+// ---------- profile user route.---------
+app.get('/profiles', (req, res) => {
+  let sql = 'SELECT user_name FROM users_table';
+  pool.query(sql, (err, result) => {
+    if (err) throw err;
+    res.render('profiles', { user_name: result });
   });
 });
 
@@ -460,16 +472,6 @@ app.post('/IntitiateTransfer', async (req, res) => {
   
 });
 
-
-// ---------- profile user route.---------
-app.get('/profiles', (req, res) => {
-  let sql = 'SELECT user_name FROM users_table';
-  pool.query(sql, (err, result) => {
-    if (err) throw err;
-    res.render('profiles', { user_name: result });
-  });
-});
-
 // ---------- Send message Get route.---------
 app.post('/sendmessage', async (req, res) => {
    // Extract data from the request body
@@ -500,6 +502,49 @@ app.post('/sendmessage', async (req, res) => {
        res.status(500).send("Error sending message. Please try again later.");
    }
 });
+
+// -----------------Accept/Transfer Post Route --------------------------
+app.post('/acceptTransfer', async (req, res) => {
+  const recipient = req.session.user.user_name; // Assuming recipient is stored in the session
+  const messageId = req.body.messageId;   
+  const action = req.body.action;
+
+
+  // Check if accept or deny button is clicked
+  if (action === "accept") {
+      // Logic to accept transfer
+      try {
+          // Update the owner of the pet in the database
+          const updatePetOwnerQuery = "UPDATE pets SET owner_id = ? WHERE id = ?";
+          const petId = req.body.pet_id;
+          await executeSQL(updatePetOwnerQuery, [recipient, petId]);
+
+          // Send new message to the sender informing them that the transfer request was accepted
+          const newMessageContent = `Your pet transfer request to ${recipient} has been accepted.`;
+          const insertMessageQuery = "INSERT INTO messages (sender_id, receiver_id, message_content) VALUES ((SELECT id FROM users_table WHERE user_name = ?), (SELECT id FROM users_table WHERE user_name = ?), ?)";
+          await executeSQL(insertMessageQuery, [recipient, sender, newMessageContent]);
+
+          res.send({ success: true, message: "Transfer request accepted successfully." });
+      } catch (error) {
+          console.error("Error accepting transfer:", error);
+          res.status(500).send({ success: false, error: "Error accepting transfer. Please try again later." });
+      }
+  } else if (action === "deny") {
+      // Logic to deny transfer
+      try {
+          // Delete the message request from the messages table
+          const deleteMessageQuery = "DELETE FROM messages WHERE id = ?";
+          await executeSQL(deleteMessageQuery, [messageId]);
+          res.send({ success: true, message: "Transfer request denied successfully." });
+      } catch (error) {
+          console.error("Error denying transfer:", error);
+          res.status(500).send({ success: false, error: "Error denying transfer. Please try again later." });
+      }
+  } else {
+      res.status(400).send({ success: false, error: "Invalid action." });
+  }
+});
+
 
 
 // ===================================================================

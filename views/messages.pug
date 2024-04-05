@@ -23,9 +23,15 @@ block content
                     ul
                         each message in messages
                             li
-                                | #{message.sender_name}: 
-                                span.message-content #{message.message_content}
-                                button(type="button" class="reply-btn" data-recipient="#{message.sender_name}") Reply
+                                if message.is_transfer  
+                                    | Transfer request: 
+                                    button(type="button" class="accept-btn" data-sender="#{message.sender_name}" data-pet-id="#{message.pet_id}") Accept
+                                    button(type="button" class="deny-btn" data-message-id="#{message.message_id}") Deny
+                                else
+                                    | #{message.sender_name}: 
+                                    span.message-content #{message.message_content}
+                                    button(type="button" class="reply-btn" data-recipient="#{message.sender_name}") Reply
+
                 else
                     p No messages
 
