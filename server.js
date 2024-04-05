@@ -130,7 +130,6 @@ app.get("/removePet", async (req,res) =>{
   try{
     let data = await executeSQL(sql, pet_id);
     // render route 
-       console.log(data);
     res.render('removePet', {
       pet: data})
 
@@ -153,7 +152,6 @@ let params = [owner_id];
 //Execute the query
 try{
   let data = await executeSQL(sql, params);
-  console.log(data)
   res.render('createPost',{
     title: 'Paws Connect',
     pets: data})
@@ -188,7 +186,7 @@ app.get('/messages', async(req, res) => {
   // Set currentRecipient based on the clicked recipient
   const currentRecipient = clickedRecipient ? clickedRecipient : "";
 
-let messages = await executeSQL(sql, values);
+  let messages = await executeSQL(sql, values);
 
   // Render Pug template with fetched messages
   res.render('messages', {
@@ -197,7 +195,6 @@ let messages = await executeSQL(sql, values);
     currentRecipient: currentRecipient
   });
 });
-
 
 
 // ---------- profile user route.---------
@@ -210,8 +207,12 @@ app.get('/profiles', (req, res) => {
 });
 
 // ---------------------------------------------
-// POST ROUTES
+// END GET ROUTES
 // ---------------------------------------------
+
+// ------------------------------------------------------------------------
+// POST ROUTES
+// ------------------------------------------------------------------------
 
 // ----------POST login route.----------------
 // POST route for handling login
@@ -236,8 +237,6 @@ app.post('/login', async(req, res) => {
     if (!passwordMatch) {
         return res.send('Invalid password');
     }
-
-    console.log('User information:', user[0]);
 
     // Store the user's information in the session
     req.session.user = user[0];
@@ -411,7 +410,6 @@ app.post('/createPost', async (req, res) => {
   const stringTagPet = req.body.post_tag;
   const pet = req.body.pet_petId;
   const timestamp = new Date().valueOf();
-  // console.log(timestamp);
   // Insert the information
   let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
              VALUES (?,?,?,?,?,?,?)`;
@@ -435,13 +433,8 @@ app.post('/IntitiateTransfer', async (req, res) => {
   const petName = req.body.petUserName;
   const sendingUser = req.session.user.user_name;
 
-  console.log('Session:', req.session);
-  console.log('Sending user: ', sendingUser);
-
-
   // Get sender and receiver IDs
   let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
-  let values1 = [sendingUser, receivingUsername];
 
   // Get pet ID
   let sql2 = 'SELECT id FROM pets_table WHERE pet_name = ?';
@@ -479,8 +472,8 @@ app.post('/sendmessage', async (req, res) => {
    const message = req.body.message;
     
    // Assuming you have session handling middleware to get the user ID
-   const sender_id = req.session.user.id;
-   console.log(sedner_id);
+   const sender_id = req.body.sender_id;
+   console.log("ID: " + sender_id);
 
    const sql1 = `SELECT id FROM users_table WHERE user_name = ?`;
    const values1 = [recipient_username];
@@ -505,44 +498,43 @@ app.post('/sendmessage', async (req, res) => {
 
 // -----------------Accept/Transfer Post Route --------------------------
 app.post('/acceptTransfer', async (req, res) => {
-  const recipient = req.session.user.user_name; // Assuming recipient is stored in the session
-  const messageId = req.body.messageId;   
+  const recipient = req.session.user; 
+  const messageId = req.body.messageId; 
+  const sender_id = req.body.senderId;
+  const pet_id = req.body.pet_id; 
   const action = req.body.action;
 
+  if(action === "accept"){
+    try {
+      // Update pets_table to change the owner
+      const sql1 = `UPDATE pets_table SET owner_id = ? WHERE id = ?`;
+      const values1 = [sender_id, pet_id];
+      await executeSQL(sql1, values1);
 
-  // Check if accept or deny button is clicked
-  if (action === "accept") {
-      // Logic to accept transfer
-      try {
-          // Update the owner of the pet in the database
-          const updatePetOwnerQuery = "UPDATE pets SET owner_id = ? WHERE id = ?";
-          const petId = req.body.pet_id;
-          await executeSQL(updatePetOwnerQuery, [recipient, petId]);
+      // Remove the associated message from messages table
+      const sql2 = `DELETE FROM messages WHERE message_id = ?`;
+      const values2 = [messageId];
+      await executeSQL(sql2, values2);
 
-          // Send new message to the sender informing them that the transfer request was accepted
-          const newMessageContent = `Your pet transfer request to ${recipient} has been accepted.`;
-          const insertMessageQuery = "INSERT INTO messages (sender_id, receiver_id, message_content) VALUES ((SELECT id FROM users_table WHERE user_name = ?), (SELECT id FROM users_table WHERE user_name = ?), ?)";
-          await executeSQL(insertMessageQuery, [recipient, sender, newMessageContent]);
+      // send new owner message if accepted
+      const newOwnerMessage = `Congratulations! Your request to transfer ownership of the pet has been accepted.`;
+      const sql3 = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
+      const values3 = [recipient.id, sender_id, newOwnerMessage];
+      await executeSQL(sql3, values3);
 
-          res.send({ success: true, message: "Transfer request accepted successfully." });
-      } catch (error) {
-          console.error("Error accepting transfer:", error);
-          res.status(500).send({ success: false, error: "Error accepting transfer. Please try again later." });
-      }
-  } else if (action === "deny") {
-      // Logic to deny transfer
-      try {
-          // Delete the message request from the messages table
-          const deleteMessageQuery = "DELETE FROM messages WHERE id = ?";
-          await executeSQL(deleteMessageQuery, [messageId]);
-          res.send({ success: true, message: "Transfer request denied successfully." });
-      } catch (error) {
-          console.error("Error denying transfer:", error);
-          res.status(500).send({ success: false, error: "Error denying transfer. Please try again later." });
-      }
-  } else {
-      res.status(400).send({ success: false, error: "Invalid action." });
+      res.status(200).send("Transfer accepted successfully.");
+    } catch (error) {
+      console.error("Error accepting transfer:", error);
+      res.status(500).send("Error accepting transfer.");
+    }
   }
+  if(action ==="deny"){
+     // Remove the associated message from messages table
+     const sql2 = `DELETE FROM messages WHERE message_id = ?`;
+     const values2 = [messageId];
+     await executeSQL(sql2, values2);
+  }
+ 
 });
 
 

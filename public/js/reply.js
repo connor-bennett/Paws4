@@ -11,39 +11,41 @@ $(document).ready(function() {
         $('#chat-window').modal('show'); // Show chat modal
     });
 
-// JavaScript for accepting or denying transfer
-$('.accept-btn, .deny-btn').on('click', function() {
-    var action = $(this).hasClass('accept-btn') ? 'accept' : 'deny'; // Determine the action based on the clicked button
-    var sender = $(this).data('sender'); // Get the sender's username
-    var messageId = $(this).data('message-id'); // Get the message ID (for deny action)
-    var petId = $(this).data('pet-id'); // Get the pet ID
+    // JavaScript for accepting or denying transfer
+    $('.accept-btn, .deny-btn').on('click', function() {
+        var action = $(this).hasClass('accept-btn') ? 'accept' : 'deny'; // Determine the action based on the clicked button
+        var sender = $(this).data('sender'); // Get the sender's username
+        var senderId = $(this).data('sender-id'); // Get the sender's ID
+        var messageId = $(this).data('message-id'); // Get the message ID (for deny action)
+        var petId = $(this).data('pet-id'); // Get the pet ID
 
-    // Perform AJAX request to acceptTransfer endpoint with the appropriate parameters
-    $.post('/acceptTransfer', { 
-        sender: sender, // Use sender instead of currentRecipient
-        messageId: messageId,
-        action: action,
-        pet_id: petId // Include the pet ID
-    }, function(response) {
-        // Handle response
-        if (response.success) {
-            // Handle success response
-            console.log("transfered Pet!...");
-            
-        } else {
-            // Handle error response
-            console.error('Error:', response.error);
-            // Optionally display an error message to the user
-        }
+        // Perform AJAX request to acceptTransfer endpoint with the appropriate parameters
+        $.post('/acceptTransfer', { 
+            sender: sender, // Use sender instead of currentRecipient
+            senderId: senderId,
+            messageId: messageId,
+            action: action,
+            pet_id: petId // Include the pet ID
+        }, function(response) {
+            // Handle response
+            if (response.success) {
+                // Handle success response
+                console.log("transfered Pet!...");
+                
+            } else {
+                // Handle error response
+                console.error('Error:', response.error);
+                // Optionally display an error message to the user
+            }
+        });
     });
-});
 
 
     // JavaScript for sending messages
     $('#send-reply-btn').on('click', function() {
         var message = $('#reply-message').val();
         // Perform AJAX request to send message to the server
-        $.post('/sendmessage', { message: message }, function(response) {
+        $.post('/sendmessage', {message: message}, function(response) {
             // Handle response and update chat window
             if (response.success) {
                 // If the message was sent successfully, update the chat window
