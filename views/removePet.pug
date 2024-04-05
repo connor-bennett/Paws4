@@ -1,15 +1,27 @@
 extends default 
 block content 
-    h1=title 
+    h1= title 
     br
     br
     hr
     h3.text-center Are you sure you want to delete the following pet profile?
-
+    - var petID = pet.pet_id;
+    - console.log(petID);
     // show pet profile information\
-        h4.text-center Pet Name: #{pet.pet_id}
+
+    h4.text-center 
+        ul 
+        
+            li Pet ID: #{pet.pet_id}
+            li Pet Name: #{pet.pet_id}
+            li 
+                img(src=pet.profile_image, alt="profile picture", width="250", height="250")
+            li Pet Type: #{pet.pet_type} 
+            li Pet Breed: #{pet.pet_breed}
+            li Pet Bio: #{pet.pet_bio}
+
     
-    a(href="/deletePet")
+    a(href="/deletePet?pet_id="+petID)
         button(type="button") Yes, Delete.
     a(href="/updatePet")
          button(type="button") No, Cancel.

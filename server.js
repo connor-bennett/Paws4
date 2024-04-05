@@ -115,13 +115,18 @@ app.get("/updatePet", async (req, res) =>{
     //Render route
     res.render('updatePet',{
       title: 'Paws Connect',
-      pet: data[1]})
+      pet: data[0]})
   } catch (error){
     return res.send ("Error: " + error.message);
   }
 });
 //-----------Remove Pets-------------
 app.get("/removePet", async (req,res) =>{
+  //Check if user is logged in 
+  if (!req.session.user){
+    return res.send("You are not logged in!");
+  }
+
   // get the petID of the current pet in consideration
   let pet_id = req.query.pet_id;
   //get information from petID
@@ -130,14 +135,31 @@ app.get("/removePet", async (req,res) =>{
   try{
     let data = await executeSQL(sql, pet_id);
     // render route 
-       console.log(data);
+  
     res.render('removePet', {
-      pet: data})
+      title: 'Paws Connect',
+      pet: data[0]})
 
   } catch (error) {
     return res.send("Error: " + error.message);
   }
 
+});
+//-----------Deleting Pet from Account--------------
+app.get('/deletePet', async (req, res)=>{
+  let pet_id = req.query.pet_id;
+  
+  // Delete the pet account from table
+  let sql = "DELETE FROM pets_table WHERE pet_id = ?";
+
+  try{
+    //execute query
+    await executeSQL(sql, pet_id);
+    //redirect user to their profile
+    res.redirect('profiles');
+  } catch (error){
+    return res.send('Error: ' + error.message);
+  }
 });
 
 //-------------Pet Owner Create Post Route----------------------
@@ -364,7 +386,7 @@ app.post('/createPet', async (req, res) => {
   const petBreed = req.body.pet_breed;
   const petProfile = req.body.pet_profile;
   const petBio = req.body.pet_bio;
-
+  
   //Check for existing petID
   let petCheckSQL = "SELECT * FROM pets_table WHERE pet_id = ?";
   let existingPet = await executeSQL(petCheckSQL, [petID]);
@@ -374,9 +396,9 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
+  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
 
   //Execute the query
   try{
@@ -385,8 +407,31 @@ app.post('/createPet', async (req, res) => {
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
+ });
 
-});
+ //-------------POST Update Pet Profile Route-------------------------
+ app.post('/updatePet', async (req,res) => {
+  //Check if user is logged in
+  if (!req.session.user){
+    return res.send("Not logged in");
+  }
+  const petID = req.body.pet_id;
+  const newName = req.body.new_pet_name;
+  const newType = req.body.new_pet_type;
+  const newBreed = req.body.new_pet_breed;
+  const newBio = req.body.new_pet_bio;
+
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newBio, petID];
+
+  try{
+    await executeSQL(sql, values);
+    res.send('Pet has been updated!');
+  } catch (error){
+    return res.send('Error in updateing pet: ' + error.message);
+  }
+
+ });
 //-------------POST Pet Owner Create Post Route----------------------
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
