@@ -59,6 +59,44 @@ app.get('/createUser', async(req, res) => {
     });
   });
 
+// ---------- profile user route.---------
+// ---------- profile user route.---------
+
+app.get('/profiles', async (req, res) => {
+  if (!req.session.user) {
+      return res.send('You are not logged in');
+  }
+
+  const user = req.session.user;
+
+  // SQL query to fetch user information
+  let sql = "SELECT * FROM users_table WHERE id = ?";
+  let userData = await executeSQL(sql, [user.id]);
+
+  // SQL query to fetch posts for the user
+  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  let postsData = await executeSQL(sql, [user.user_name]);
+  let postCount = postsData.length;
+
+  // SQL query to fetch pets for the user
+  sql = "SELECT * FROM pets_table WHERE owner_id = ?";
+  let petData = await executeSQL(sql, [user.id]);
+
+  res.render('profiles', {
+      title: 'Paws Connect',
+      user: user,
+      userData: userData[0], // Pass the user data from table to the template
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the template
+      petData: petData, // Pass the user's pets from table to the template
+  });
+});
+
+
+
+
+
+
 // ------- Update User --------------------
 // GET route for rendering updateUser page
 app.get('/updateUser', async (req, res) => {
