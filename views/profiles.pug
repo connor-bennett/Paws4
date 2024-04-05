@@ -22,18 +22,31 @@ html
           a.nav-link(href='/createUser') Sign Up
         li.nav-item
           a.nav-link(href='/createPet') Create Pet Profile
+        li.nav-item
+          a.nav-link(href='/createPost') Create Post
+        li.nav-item
+          a.nav-link(href='/profileSearch') Search for users
+          
+    #profilePics 
+      h2(style="text-align: center;") Pictures 
+      each pet in petData
+        img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+
+      each post in postsData
+        img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+
+    #posts
+      h2 Posts
+      each post in postsData
+        .postContainer
+          .postData
+            img(src=post.posting_image, width="400", height="400", alt="Post image")
+            p= post.post_text
+
         li.nav-item 
           a.nav-link(href='/transferPet') Transfer Pet
         li.nav-item 
           a.nav-link(href="/messages") Messages
-
-    #profilePics 
-      <h2 style="text-align: center"> Pictures</h2>
-      <p style="text-align: center"> picture gallery here</p>
-
-    #posts 
-      <h2 style="text-align: center"> Posts</h2>
-      <p style="text-align: center"> posts here</p>
 
     #friends
       <h2 style="text-align: center"> Friends</h2>
@@ -41,16 +54,17 @@ html
 
     #petprofiles
       <h2 style="text-align: center"> Pet Profiles</h2>
-      <p style="text-align: center"> pet profiles here</p>
+      each pet in petData
+        img(src=pet.profile_image, width="100", height="100", alt="Pet image")
+        p= pet.pet_name
 
     #profileInfo
-      <h2 style="text-align: center"> UserInfo
-       a(href="/updateUser") 
-        img(src="/images/edit.png", alt="edit profile" width='20')
-      </h2>
-      img(src='/images/pawsLogo.png' width="200" height="200" align="center" style="display: block; margin-left: auto; margin-right: auto;")
+      <h2 style="text-align: center"> UserInfo</h2>
+      div(style="display: flex; justify-content: center; align-items: center;")
+        img(src=user.profile_img, width="200", height="200", alt="User profile image")
       <br>
-      p User Name: #{user_name}
-      p User Since: 
-      P Number of Posts:
+      p User Name: #{user.user_name}
+      p Email: #{user.email}
+      p Language: #{user.language}
+      P Number of Posts: #{postCount}
     block content
