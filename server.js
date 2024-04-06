@@ -168,12 +168,12 @@ app.get("/updatePet", async (req, res) =>{
     return res.send('You are not logged in!');
   }
 
-  //hard coding to get first pet from ownsers list for now
+  let petID = req.query.pet_id;
   
-  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?"
 
   try{
-    let data = await executeSQL(sql, req.session.user.id);
+    let data = await executeSQL(sql, petID);
     //Render route
     res.render('updatePet',{
       title: 'Paws Connect',
@@ -368,7 +368,7 @@ app.post('/createUser', async(req, res) => {
 
       // Execute the query
       await executeSQL(sql, values);
-      res.send('User created successfully!');
+      res.redirect('profiles');
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
   }
@@ -385,7 +385,7 @@ app.post('/updateUser', async (req, res) => {
     // Get the new information from the form submission
     const newEmail = req.body.new_email;
     const newDisplayName = req.body.new_display_name;
-    const newProfPic = req.body.new_profile_picture;
+    const newProfPic = req.body.new_profile_img;
     const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
@@ -399,7 +399,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.send('User information updated successfully');
+        res.redirect('profiles');
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -441,7 +441,7 @@ app.post('/updatePassword', async (req, res) => {
 
       //Execute the query
       await executeSQL(sql, params);
-      res.send('Password Successfully Updated!');
+      res.redirect('profiles');
   } catch (error) {
     return res.send("Error updating password: " + error.message);
   }
@@ -482,7 +482,7 @@ if (!req.session.user){
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.send('Pet created successfully!');
+    res.redirect('profiles');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
@@ -498,6 +498,7 @@ if (!req.session.user){
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
+  const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
   let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
@@ -505,7 +506,7 @@ if (!req.session.user){
 
   try{
     await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    res.redirect('profiles');
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
