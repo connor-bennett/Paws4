@@ -634,7 +634,7 @@ app.post('/messages', (req, res) => {
   // Handle sending messages
   // Save message to the database
   // Redirect back to the message center page
-=======
+
 // -----------------Accept/Transfer Post Route --------------------------
 app.post('/acceptTransfer', async (req, res) => {
   const recipient = req.session.user; 
@@ -676,7 +676,7 @@ app.post('/acceptTransfer', async (req, res) => {
  
 
 });
-
+});
 
 
 // ===================================================================
