@@ -138,29 +138,6 @@ app.get('/createPet', async (req, res) =>{
         title: 'Paws Connect'});
 });
 
-
-//-------Create Posts-------------
-app.get('/createPost', async (req, res) => {
-  // Check if user is logged in 
-if (!req.session.user){
-  return res.send('Not logged in');
-  // res.redirect('/home');
-  
-}
-const owner_id = req.session.user.id;
-let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
-let params = [owner_id];
-
-// Execute the query
-try{
-  let data = await executeSQL(sql, params);
-  res.render('createPost',{pets: data})
-  
-} catch (error) {
-  return res.send ('Error in creating data: ' + error.message);
-}
-});
-
 //-----------Manage Pets ---------------
 app.get("/updatePet", async (req, res) =>{
   //Check if user is Logged in (user information exists in session)
@@ -229,7 +206,8 @@ app.get('/deletePet', async (req, res)=>{
 app.get('/createPost', async (req, res) => {
   // Check if user is logged in 
 if (!req.session.user){
-  return res.send('Not logged in');
+  return res.render('home',{errorMessage: 'Need to log in first. '})
+  // return res.send('Not logged in');
 }
 const owner_id = req.session.user.id;
 let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
@@ -515,7 +493,9 @@ if (!req.session.user){
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
-    return res.send('Not logged in');
+    return res.render('home',{errorMessage: 'Need to log in first. '})
+
+    // return res.send('Not logged in');
     
   }
 
