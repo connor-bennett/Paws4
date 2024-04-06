@@ -522,14 +522,12 @@ app.post('/createPost', async (req, res) => {
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
   let pet = req.body.pet_petId;
-  const timestamp = new Date().valueOf();
-
   const visibility = req.body.post_visibility;
 
   // Insert the information
-  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, post_timeStamp, post_visibility)
-             VALUES (?,?,?,?,?,?)`;
-  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, timestamp, visibility];
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, post_visibility)
+             VALUES (?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, visibility];
   
   // execute the query 
   try{
@@ -539,7 +537,10 @@ app.post('/createPost', async (req, res) => {
     return res.send ('Error in creating post: ' + error.message);
   }
   const id = data.insertId;
-  // console.log(id);
+  // check if pets were not tagged in post 
+  if(!pet){
+    return res.send('post created successfully!');
+  }
   // if only one pet is selected, wont be an array type
   if(!Array.isArray(pet)){
     pet = [pet];
@@ -556,7 +557,8 @@ app.post('/createPost', async (req, res) => {
     }catch(error){
       return res.send ('Error in creating post: ' + error.message);
     }
-  });
+    });
+  
   });
 
 // ----------POST  INITATE TRANSFER PET  route.----------------
