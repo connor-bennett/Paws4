@@ -1,0 +1,49 @@
+extends default 
+block content 
+
+    .container
+        .row.justify-content-center
+        .col-md-6
+            h1.title.text-center=title 
+            h3.text-center Message Center
+
+            form(action="/sendmessage", method="post")
+                label(for="recipient") Recipient:
+                input(type="text", id="recipient", name="recipient", required)
+                br
+                label(for="message") Message:
+                textarea(id="message", name="message", rows="4", required)
+                br
+                input(type="submit", value="Send Message")
+
+            br
+            br
+            .scroll-box
+                if messages.length > 0
+                    ul
+                        each message in messages
+                            li
+                                if message.is_transfer  
+                                    | Request to transfer ownership #{message.pet_id} from #{message.sender_name} sender ID: #{message.sender_id}: 
+                                    button(type="button" class="accept-btn" data-sender-id=message.sender_id data-pet-id=message.pet_id data-message-id=message.message_id) Accept
+                                    button(type="button" class="deny-btn" data-message-id=message.message_id) Deny
+                                else
+                                    | #{message.sender_name}: 
+                                    span.message-content #{message.message_content}
+                                    button(type="button" class="reply-btn" data-recipient=message.sender_name ) Reply
+
+                else
+                    p No messages
+
+    #chat-window.modal
+        .modal-content
+            .modal-header
+                h5.modal-title Chat with #{currentRecipient}
+                button.close(type="button" data-dismiss="modal") ×
+            .modal-body
+                ul#chat-messages
+            .modal-footer
+                textarea#reply-message(rows="3" placeholder="Type your message...")
+                button#send-reply-btn(type="button") Send
+
+    script(src="/JS/reply.js")

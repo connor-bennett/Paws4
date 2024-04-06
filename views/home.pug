@@ -1,6 +1,27 @@
-extends default
+extends default 
+
 block content
-    .home-search
+    .home-search 
         img(src="/images/pawsLogo.png" width="180" height="180")
-        form(action='/search' method='GET')
-            input.home-input(autofocus='' placeholder='Search Paws Connect' type='search' name='q')
+        form(id='searchForm' action='/search' method='GET')
+            input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
+            button(type='submit') Search
+
+    .container
+        if userSearchResults && userSearchResults.length > 0
+            ul.search-results
+                each user in userSearchResults
+                    li
+                        img(src=user.profile_img, width="100", height="100", alt='User Profile Image')
+                        p #{user.user_name}
+
+        if petSearchResults && petSearchResults.length > 0
+            ul.search-results
+                each pet in petSearchResults
+                    li
+                        img(src=pet.profile_image, width="100", height="100", alt='Pet Profile Image')
+                        p #{pet.pet_name}
+
+        if !userSearchResults.length && !petSearchResults.length
+            .result-count
+                strong No results found for #{searchQuery}.

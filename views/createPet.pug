@@ -6,6 +6,14 @@ block content
         br
         h3.text-center Enter Pet Information Below: 
 
+
+        form(method="POST", encytpe="multipart/form-data", action="/upload")
+            input(type="file", name="file" multiple) 
+            input(type="submit", name='file' value="upload")  
+                
+
+        br
+        br
         form(action="/createPet", method="POST")
             div.form-group
                 label(for="pet_id") PetID: 
@@ -16,23 +24,22 @@ block content
                 input(type="text", id="pet_name", name="pet_name", placeholder="Enter Pet's Name", required)
                 br
             div.form-group 
-                - var types = ["Dog", "Cat", "Other"]
+                - var types = ["Dog", "Cat", "Lizard", "Fish", "Other"]
                 label(for="pet_type") Pet Type:
                 select(name="pet_type", id="pet_type", required) 
                     each petType in types
-                        option(value=`{petType}`)= petType[0] + petType.slice(1)
+                        option(value=petType)= petType[0] + petType.slice(1) 
                 br
             div.form-group 
                 label(for="pet_breed") Pet Breed: 
                 input(type="text", id="pet_breed", name='pet_breed', placeholder="Enter Pet's Breed")
                 br
             div.form-group 
-                label(for="pet_profile") Profile Picture: 
-                input(type="text", name="pet_profile", id="pet_profile")
-                br
-            div.form-group 
                 label(for="pet_bio") Pet Bio: 
-                input(type="text", name="pet_bio", id='pet_bio', placeholder="Tell people more about your pet!")
+                input(type="textbox", name="pet_bio", id='pet_bio', placeholder="Tell people more about your pet!")
                 br
             div.form-group
                 button(type="submit") Create Pet Profile
+
+    
+
