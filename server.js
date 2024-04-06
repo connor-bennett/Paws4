@@ -516,8 +516,9 @@ app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
     return res.send('Not logged in');
-
+    
   }
+
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
   let pet = req.body.pet_petId;
@@ -533,12 +534,14 @@ app.post('/createPost', async (req, res) => {
     data = await executeSQL(sql, values);
 
   } catch(error){
-    return res.send ('Error in creating post: ' + error.message);
+    // return res.send ('Error in creating post: ' + error.message);
+    return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
   }
   const id = data.insertId;
   // check if pets were not tagged in post 
   if(!pet){
-    return res.send('post created successfully!');
+    return res.render('createPost',{successful: 'Created Post Succesfully!'})
+    // return res.send('post created successfully!');
   }
   // if only one pet is selected, wont be an array type
   if(!Array.isArray(pet)){
@@ -551,10 +554,12 @@ app.post('/createPost', async (req, res) => {
       VALUES (?,?,?)`;
       let values2 = [req.session.user.id, pet_id, id];
       await executeSQL(sql2, values2);
-      res.send('post created successfully!');
+      return res.render('createPost',{successful: 'Created Post Succesfully!'})
+      // res.send('post created successfully!');
 
     }catch(error){
-      return res.send ('Error in creating post: ' + error.message);
+      // return res.send ('Error in creating post: ' + error.message);
+      return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
     }
     });
   
