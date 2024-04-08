@@ -22,7 +22,7 @@ block content
         h3.text-center Change Pet Information Below:
 
         form(action='/updatePet', method="POST")
-            input(type="text", id="pet_id", value=pet.pet_id, hidden)
+            input(type="text", name="pet_id", value=pet.pet_id, hidden)
             div.form-group 
                 label(for="new_pet_name") Edit Pet Name: 
                 input(type="text", id="new_pet_name", name="new_pet_name", value=pet.pet_name)

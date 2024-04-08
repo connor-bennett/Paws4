@@ -92,6 +92,34 @@ app.get('/profiles', async (req, res) => {
   });
 });
 
+// ---------- Pet Profile ---------
+
+app.get('/petProfile', async (req, res) => {
+  if (!req.session.user) {
+      return res.send('You are not logged in');
+  }
+
+  let petID = req.query.pet_id;
+  const user = req.session.user;
+  // SQL query to fetch pet information
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let petData = await executeSQL(sql, petID);
+
+  // SQL query to fetch posts for the pet
+  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  let postsData = await executeSQL(sql, [user.user_name]);
+  let postCount = postsData.length;
+
+
+  res.render('petProfile', {
+      title: 'Paws Connect',
+      pet: petData[0],
+      user: user,
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the template
+  });
+});
+
 
 
 
@@ -494,19 +522,19 @@ if (!req.session.user){
   if (!req.session.user){
     return res.send("Not logged in");
   }
-  const petID = req.body.pet_id;
+  let petID = req.body.pet_id;
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
   const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
-  let values = [newName,newType, newBreed, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, profile_image = ?, pet_bio = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newProfPic, newBio, petID];
 
   try{
     await executeSQL(sql, values);
-    res.redirect('profiles');
+    res.redirect('petProfile?pet_id='+petID);
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
