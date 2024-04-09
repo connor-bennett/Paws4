@@ -59,8 +59,10 @@ html
 
     #profileInfo
       <h2 style="text-align: center"> PetInfo
-      a(href="/updatePet?pet_id="+pet.pet_id) 
+      -if (pet.owner_id == user.id) {
+        a(href="/updatePet?pet_id="+pet.pet_id) 
           img(src="/images/edit.png" alt="edit" width="25")
+      -}
       </h2>
 
       div(style="display: flex; justify-content: center; align-items: center;")
@@ -70,5 +72,5 @@ html
       p PetID: #{pet.pet_id}
       p Type: #{pet.pet_type} | #{pet.pet_breed} 
       p 
-        a(href="/profiles")  Owner: #{user.user_name}
+        a(href="/profiles?user_id="+owner.id)  Owner: #{owner.user_name}
     block content
