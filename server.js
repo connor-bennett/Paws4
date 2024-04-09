@@ -265,13 +265,13 @@ app.get('/transferPet', async(req, res) => {
 // ------------Messages pet-----------------------
 app.get('/messages', async(req, res) => {
   // Fetch messages from the database
-  const user_id = req.session.user.id;
+  sender_id = req.session.user.id;
 
   sql = `SELECT messages.*, users_table.user_name AS sender_name
   FROM messages
   JOIN users_table ON messages.sender_id = users_table.id
   WHERE messages.receiver_id = ?`;
-  values = [user_id];
+  values = [sender_id];
 
   // Get recipient from the clicked message, if any
   const clickedRecipient = req.query.recipient;
@@ -285,6 +285,7 @@ app.get('/messages', async(req, res) => {
   res.render('messages', {
     title: 'Paws Connect', 
     messages: messages,
+    sender_id: sender_id,
     currentRecipient: currentRecipient
   });
 });
@@ -613,11 +614,13 @@ app.post('/IntitiateTransfer', async (req, res) => {
   
 });
 
-// ---------- Send message Get route.---------
+// ---------- Send message Post route.---------
 app.post('/sendmessage', async (req, res) => {
    // Extract data from the request body
    const recipient_username = req.body.recipient;
    const message = req.body.message;
+
+   console.log(" session : " + req.session.user.id);
     
    // Assuming you have session handling middleware to get the user ID
    const sender_id = req.body.sender_id;
@@ -644,12 +647,12 @@ app.post('/sendmessage', async (req, res) => {
    }
 });
 
-
-
 app.post('/messages', (req, res) => {
   // Handle sending messages
   // Save message to the database
   // Redirect back to the message center page
+
+});
 
 // -----------------Accept/Transfer Post Route --------------------------
 app.post('/acceptTransfer', async (req, res) => {
@@ -690,8 +693,6 @@ app.post('/acceptTransfer', async (req, res) => {
      await executeSQL(sql2, values2);
   }
  
-
-});
 });
 
 
