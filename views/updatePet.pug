@@ -16,16 +16,16 @@ block content
         hr
         h3.text-center
             a(href="/removePet?pet_id="+petID) Delete Pet Profile 
-            a(href="/") Transfer Pet Profile
+            a(href="/transferPet") Transfer Pet Profile
         br
         hr
         h3.text-center Change Pet Information Below:
 
         form(action='/updatePet', method="POST")
-            input(type="text", id="pet_id", value=pet.pet_id, hidden)
+            input(type="text", name="pet_id", value=pet.pet_id, hidden)
             div.form-group 
                 label(for="new_pet_name") Edit Pet Name: 
-                input(type="text", id="new_pet_name", name="new_pet_name", required, placeholder=pet.pet_name)
+                input(type="text", id="new_pet_name", name="new_pet_name", value=pet.pet_name)
                 br
             div.form-group 
                 -var types = ["Dog", "Cat", "Lizard", "Fish", "Other"]
@@ -35,11 +35,14 @@ block content
                     each petType in types 
                         option(value=petType)= petType[0] + petType.slice(1)
             div.form-group 
-                label(for='new_pet_breed') Update Pet Breed: 
-                input(type="text", name="new_pet_breed", id="new_pet_breed", placeholder=pet.pet_breed)
+                label(for='new_pet_breed') Edit Pet Breed: 
+                input(type="text", name="new_pet_breed", id="new_pet_breed", value=pet.pet_breed)
                 br
             div.form-group 
-                label(for="new_pet_bio") Update Pet Bio: 
-                input(type="textbox" , name="new_pet_bio", id="new_pet_bio", placeholder=pet.pet_bio)
+                label(for='new_profile_image') Edit Profile Picture
+                input(type="text", id="new_profile_image", name="new_profile_image", value=pet.profile_image)
+            div.form-group 
+                label(for="new_pet_bio") Edit Pet Bio: 
+                input(type="textbox" , name="new_pet_bio", id="new_pet_bio", value=pet.pet_bio)
                 br
             button(type="submit") Update
