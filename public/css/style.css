@@ -362,3 +362,14 @@ html {
       display: none;
     }
   }
+  /* Create Post */
+  /* success text */
+  .success{
+    color: #4CAF50;
+    font-family: 'Helvetica',sans-serif;
+  }
+  /* error message*/
+  .error{
+    color: red;
+    font-family: 'Helvetica',sans-serif;
+  }
