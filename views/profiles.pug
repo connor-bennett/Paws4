@@ -66,15 +66,17 @@ html
 
     #profileInfo
       <h2 style="text-align: center"> UserInfo
-      a(href="/updateUser") 
+      -if (userData.id == user.id){
+        a(href="/updateUser") 
           img(src="/images/edit.png" alt="edit" width="25")
+      -}
       </h2>
 
       div(style="display: flex; justify-content: center; align-items: center;")
-        img(src=user.profile_img, width="200", height="200", alt="User profile image")
+        img(src=userData.profile_img, width="200", height="200", alt="User profile image")
       <br>
-      p User Name: #{user.user_name}
-      p Email: #{user.email}
-      p Language: #{user.language}
+      p User Name: #{userData.user_name}
+      p Email: #{userData.email}
+      p Language: #{userData.language}
       P Number of Posts: #{postCount}
     block content
