@@ -66,21 +66,26 @@ app.get('/profiles', async (req, res) => {
   if (!req.session.user) {
       return res.send('You are not logged in');
   }
-
   const user = req.session.user;
-
+  let userID;
+  if (!req.query.user_id){
+    userID = req.session.user.id;
+  } else {
+     userID = req.query.user_id;
+  }
+  
   // SQL query to fetch user information
   let sql = "SELECT * FROM users_table WHERE id = ?";
-  let userData = await executeSQL(sql, [user.id]);
+  let userData = await executeSQL(sql, userID);
 
   // SQL query to fetch posts for the user
   sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
-  let postsData = await executeSQL(sql, [user.user_name]);
+  let postsData = await executeSQL(sql, [userData[0].user_name]);
   let postCount = postsData.length;
 
   // SQL query to fetch pets for the user
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";
-  let petData = await executeSQL(sql, [user.id]);
+  let petData = await executeSQL(sql, userID);
 
   res.render('profiles', {
       title: 'Paws Connect',
@@ -89,6 +94,37 @@ app.get('/profiles', async (req, res) => {
       postsData: postsData, // Pass the user's posts from table to the template
       postCount: postCount, // Pass the post count to the template
       petData: petData, // Pass the user's pets from table to the template
+  });
+});
+
+// ---------- Pet Profile ---------
+
+app.get('/petProfile', async (req, res) => {
+  if (!req.session.user) {
+      return res.send('You are not logged in');
+  }
+  const user = req.session.user;
+  let petID = req.query.pet_id;
+  
+  // SQL query to fetch pet information
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let petData = await executeSQL(sql, petID);
+
+  sql = "SELECT * FROM users_table WHERE id = ?"
+  let ownerData = await executeSQL(sql, petData[0].owner_id);
+  // SQL query to fetch posts for the pet
+  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  let postsData = await executeSQL(sql, [ownerData[0].user_name]);
+  let postCount = postsData.length;
+
+
+  res.render('petProfile', {
+      title: 'Paws Connect',
+      pet: petData[0],
+      user: user,
+      owner: ownerData[0],
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the template
   });
 });
 
@@ -145,12 +181,12 @@ app.get("/updatePet", async (req, res) =>{
     return res.send('You are not logged in!');
   }
 
-  //hard coding to get first pet from ownsers list for now
+  let petID = req.query.pet_id;
   
-  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?"
 
   try{
-    let data = await executeSQL(sql, req.session.user.id);
+    let data = await executeSQL(sql, petID);
     //Render route
     res.render('updatePet',{
       title: 'Paws Connect',
@@ -237,13 +273,13 @@ app.get('/transferPet', async(req, res) => {
 // ------------Messages pet-----------------------
 app.get('/messages', async(req, res) => {
   // Fetch messages from the database
-  const user_id = req.session.user.id;
+  sender_id = req.session.user.id;
 
   sql = `SELECT messages.*, users_table.user_name AS sender_name
   FROM messages
   JOIN users_table ON messages.sender_id = users_table.id
   WHERE messages.receiver_id = ?`;
-  values = [user_id];
+  values = [sender_id];
 
   // Get recipient from the clicked message, if any
   const clickedRecipient = req.query.recipient;
@@ -257,6 +293,7 @@ app.get('/messages', async(req, res) => {
   res.render('messages', {
     title: 'Paws Connect', 
     messages: messages,
+    sender_id: sender_id,
     currentRecipient: currentRecipient
   });
 });
@@ -346,7 +383,7 @@ app.post('/createUser', async(req, res) => {
 
       // Execute the query
       await executeSQL(sql, values);
-      res.send('User created successfully!');
+      res.redirect('profiles');
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
   }
@@ -363,7 +400,7 @@ app.post('/updateUser', async (req, res) => {
     // Get the new information from the form submission
     const newEmail = req.body.new_email;
     const newDisplayName = req.body.new_display_name;
-    const newProfPic = req.body.new_profile_picture;
+    const newProfPic = req.body.new_profile_img;
     const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
@@ -377,7 +414,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.send('User information updated successfully');
+        res.redirect('profiles');
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -419,7 +456,7 @@ app.post('/updatePassword', async (req, res) => {
 
       //Execute the query
       await executeSQL(sql, params);
-      res.send('Password Successfully Updated!');
+      res.redirect('profiles');
   } catch (error) {
     return res.send("Error updating password: " + error.message);
   }
@@ -441,7 +478,7 @@ if (!req.session.user){
   const petName = req.body.pet_name;
   const petType = req.body.pet_type;
   const petBreed = req.body.pet_breed;
-  const petProfile = req.body.pet_profile;
+  const petProfile = req.body.profile_image;
   const petBio = req.body.pet_bio;
   
   //Check for existing petID
@@ -453,14 +490,14 @@ if (!req.session.user){
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
+  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.send('Pet created successfully!');
+    res.redirect('profiles');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
@@ -471,19 +508,20 @@ if (!req.session.user){
   //Check if user is logged in
   if (!req.session.user){
     return res.send("Not logged in");
-  }
-  const petID = req.body.pet_id;
+  } 
+  let petID = req.body.pet_id;
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
+  const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
-  let values = [newName,newType, newBreed, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, profile_image = ?, pet_bio = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newProfPic, newBio, petID];
 
   try{
     await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    res.redirect('petProfile?pet_id='+petID);
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
@@ -584,11 +622,13 @@ app.post('/IntitiateTransfer', async (req, res) => {
   
 });
 
-// ---------- Send message Get route.---------
+// ---------- Send message Post route.---------
 app.post('/sendmessage', async (req, res) => {
    // Extract data from the request body
    const recipient_username = req.body.recipient;
    const message = req.body.message;
+
+   console.log(" session : " + req.session.user.id);
     
    // Assuming you have session handling middleware to get the user ID
    const sender_id = req.body.sender_id;
@@ -615,12 +655,12 @@ app.post('/sendmessage', async (req, res) => {
    }
 });
 
-
-
 app.post('/messages', (req, res) => {
   // Handle sending messages
   // Save message to the database
   // Redirect back to the message center page
+
+});
 
 // -----------------Accept/Transfer Post Route --------------------------
 app.post('/acceptTransfer', async (req, res) => {
@@ -661,8 +701,6 @@ app.post('/acceptTransfer', async (req, res) => {
      await executeSQL(sql2, values2);
   }
  
-
-});
 });
 
 

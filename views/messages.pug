@@ -10,6 +10,7 @@ block content
             form(action="/sendmessage", method="post")
                 label(for="recipient") Recipient:
                 input(type="text", id="recipient", name="recipient", required)
+                input(type="hidden", id="sender_id", name="sender_id", value=sender_id)
                 br
                 label(for="message") Message:
                 textarea(id="message", name="message", rows="4", required)

@@ -33,8 +33,8 @@ html
           
     #profilePics 
       h2(style="text-align: center;") Pictures 
-      each pet in petData
-        img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+      
+      img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
 
       each post in postsData
         img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
@@ -52,36 +52,25 @@ html
         li.nav-item 
           a.nav-link(href="/messages") Messages
 
-    //- #friends
-    //-   <h2 style="text-align: center"> Friends</h2>
-    //-   <p style="text-align: center"> friends here</p>
+    #friends
+      <h2 style="text-align: center"> Bio:  </h2>
+      <p style="text-align: center"> #{pet.pet_bio} </p>
 
-    #petprofiles
-      <h2 style="text-align: center"> Pet Profiles</h2>
-      each pet in petData
-        img(src=pet.profile_image, width="100", height="100", alt="Pet image")
-        p  
-          a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
-        br
 
     #profileInfo
-      <h2 style="text-align: center"> UserInfo
-      -if (userData.id == user.id){
-        a(href="/updateUser") 
+      <h2 style="text-align: center"> PetInfo
+      -if (pet.owner_id == user.id) {
+        a(href="/updatePet?pet_id="+pet.pet_id) 
           img(src="/images/edit.png" alt="edit" width="25")
       -}
       </h2>
 
       div(style="display: flex; justify-content: center; align-items: center;")
-
-        img(src=user.profile_img, width="200", height="200", alt="User profile image")
-        
-      p User Name: #{user.user_name}
-      br
-      p Email: #{user.email}
-      br
-      p Language: #{user.language}
-      br
-      p Number of Posts: #{postCount}
-
+        img(src=pet.profile_image, width="200", height="200", alt="pet profile image")
+      <br>
+      p Pet Name: #{pet.pet_name}
+      p PetID: #{pet.pet_id}
+      p Type: #{pet.pet_type} | #{pet.pet_breed} 
+      p 
+        a(href="/profiles?user_id="+owner.id)  Owner: #{owner.user_name}
     block content
