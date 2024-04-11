@@ -52,9 +52,9 @@ html
         li.nav-item 
           a.nav-link(href="/messages") Messages
 
-    #friends
-      <h2 style="text-align: center"> Friends</h2>
-      <p style="text-align: center"> friends here</p>
+    //- #friends
+    //-   <h2 style="text-align: center"> Friends</h2>
+    //-   <p style="text-align: center"> friends here</p>
 
     #petprofiles
       <h2 style="text-align: center"> Pet Profiles</h2>
@@ -66,9 +66,12 @@ html
       <h2 style="text-align: center"> UserInfo</h2>
       div(style="display: flex; justify-content: center; align-items: center;")
         img(src=user.profile_img, width="200", height="200", alt="User profile image")
-      <br>
+        
       p User Name: #{user.user_name}
+      br
       p Email: #{user.email}
+      br
       p Language: #{user.language}
-      P Number of Posts: #{postCount}
+      br
+      p Number of Posts: #{postCount}
     block content

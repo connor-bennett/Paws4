@@ -2,7 +2,9 @@ extends default
 block content
     if errorMessage
         h2.error= errorMessage
+    
     .home-search
-        img(src="/images/pawsLogo.png" width="180" height="180")
+        h1 🐾 Welcome to Paws Connect 
+        img(src="/images/pets-images.jpg" width="800" height="400")
         form(action='/search' method='GET')
             input.home-input(autofocus='' placeholder='Search Paws Connect' type='search' name='q')
