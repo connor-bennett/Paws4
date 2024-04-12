@@ -6,6 +6,8 @@ block content
         hr
         h3.text-center Update User Inforamation!
             ul
+                li 
+                    img(src=user.profile_img, alt="profile picture", width="250", heiht="250")
                 li Username: #{user.user_name}
                 li Display Name: #{user.display_name}
         br
@@ -17,6 +19,7 @@ block content
         
         form(action="/updateUser", method="POST")
             div.form-group
+
                 label(for="new_email") New Email:
                 input(type="email", id="new_email", name="new_email", required, value=user.email)
                 br
@@ -28,12 +31,15 @@ block content
                 //figure out how to add picutures through files
                 label(for="new_profile_picture") Profile Picture:
                 input(type="text", id="new_profile_picture", name="new_profile_picture", value=user.profile_picture)
+
                 br
             div.form-group 
                 //manually inputed for now, can change to take in languages of a translater API
                 - var langs = ["English", "Spanish", "French", "German"]
+
                 label(for="new_preferred_lang") Preferred Language:
                 select(name="new_preferred_lang", id="new_preferred_lang", required)
+
                     each language in langs 
                         option(value=language)= language[0] +language.slice(1)
                 br

@@ -60,6 +60,7 @@ html
       <h2 style="text-align: center"> Pet Profiles</h2>
       each pet in petData
         img(src=pet.profile_image, width="100", height="100", alt="Pet image")
+
         p= pet.pet_name
 
     #profileInfo
@@ -70,5 +71,6 @@ html
       p User Name: #{user.user_name}
       p Email: #{user.email}
       p Language: #{user.language}
+
       P Number of Posts: #{postCount}
     block content

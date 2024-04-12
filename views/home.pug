@@ -1,7 +1,9 @@
 extends default
 
 block content
+
     .home-search 
+
         img(src="/images/pawsLogo.png" width="180" height="180")
         form(id='searchForm' action='/search' method='GET')
             input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
