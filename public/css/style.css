@@ -95,7 +95,7 @@ html {
     background-color: #ffffff;
   }
 
-  #profilePics
+  /* #profilePics
   {
     list-style-position: inside;
     position: absolute;
@@ -107,13 +107,13 @@ html {
     border: 2px solid black;
     background-color: #ffffff;
     justify-content: center;
-  }
+  } */
 
   #posts
   {
     list-style-position: inside;
     position: absolute;
-    top: 250px;
+    top: 120px;
     /* width: auto; */
     width: auto;
     padding: 15px;
@@ -376,3 +376,19 @@ html {
     color: red;
     font-family: 'Helvetica',sans-serif;
   }
+  .home-content {
+    margin-top: 50px;
+}
+
+.homeTitle {
+    font-size: 2.5rem;
+}
+
+.homeImage {
+    border-radius: 10px;
+}
+
+.homeButton {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}

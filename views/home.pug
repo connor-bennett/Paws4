@@ -1,10 +1,47 @@
 extends default
+
 block content
-    if errorMessage
-        h2.error= errorMessage
+    //- nav.navbar.navbar-expand-lg.navbar-light.bg-light
+    //-     .container
+    //-         a.navbar-brand(href='/') Home
+            
+    //-         button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
+    //-             span.navbar-toggler-icon
+            
+    //-         .collapse.navbar-collapse#navbarSupportedContent
+    //-             ul.navbar-nav.mr-auto
+    //-                 li.nav-item.active
+    //-                     a.nav-link(href='/login') Log in 
+    //-                 li.nav-item
+    //-                     a.nav-link(href='/createUser') Create new User
+    //-                 li.nav-item
+    //-                     a.nav-link(href='/createPet') Create a Pet Profile
+    //-                 li.nav-item
+    //-                     a.nav-link(href='/createPost') Create a Post
+
+    .container-fluid
+        .row.justify-content-center
+            .col-md-8
+                .home-content.text-center
+                    if errorMessage
+                        h2.error= errorMessage
+                    
+                    h1.homeTitle.mb-4(style="font-family: 'Arial', sans-serif;") Paws Connect
+                    img.homeImage(src="/images/pets-images.jpg" alt="Paws Connect" width="800" height="400").img-fluid.mb-4
+                    
+                    form.home-form(action='/search' method='GET')
+                        .input-group.mb-3
+                            input.home-input.form-control(type='search' name='q' placeholder='Search Paws Connect' autofocus='')
+                            .input-group-append
+                                button.homeButton.btn.btn-primary(type='submit') Search
+
+//- extends default
+//- block content
+//-     if errorMessage
+//-         h2.error= errorMessage
     
-    .home-search
-        h1 🐾 Welcome to Paws Connect 
-        img(src="/images/pets-images.jpg" width="800" height="400")
-        form(action='/search' method='GET')
-            input.home-input(autofocus='' placeholder='Search Paws Connect' type='search' name='q')
+//-     .home-search
+//-         h1 🐾 Welcome to Paws Connect 
+//-         img(src="/images/pets-images.jpg" width="800" height="400")
+//-         form(action='/search' method='GET')
+//-             input.home-input(autofocus='' placeholder='Search Paws Connect' type='search' name='q')
