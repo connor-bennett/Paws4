@@ -6,38 +6,38 @@ block content
         br
         h3.text-center Enter Your Post: 
 
+
         if successful
             h2.success= successful
 
         if errorMessage
             h2.error= errorMessage
-        
+
         form(action="/createPost", method="POST")
             div.form-group
                 label(for="posting_image") Image: 
                 input(type="text", id="posting_image", name="posting_image", placeholder="upload your image!", required)
                 br
+
                 br
+
             div.form-group
                 label(for="post_text") Text:
                 input(type="text", id="post_text", name="post_text", placeholder="Type your post!", required)
                 br
+                
+            div.form-group
+                label(for="post_tag") Tag your pet!
+                input(type="text", id="post_tag", name="post_tag", placeholder="Enter pet name!")
                 br
-            if pets
-                div.form.group
-                    label Select Pet Username:
-                    each pet in pets 
-                        div 
-                            input(type="checkbox",name="pet_petId",id=`pet_${pet.pet_id}`,value=pet.pet_id)
-                            label(for=`pet_${pet.pet_id}`)=pet.pet_id
-                    br
+            div.form-group
+                label(for="pet_petId") Enter pet id:
+                input(type="text", id="pet_petId", name="pet_petId", placeholder="Enter pet id!")
+                br
             div.form-group 
-                - var types =["Public", "Friends Only"]
-                label(for="post_visibility") Post Visibility: 
-                select(name="post_visibility", id="post_visibility", required)
-                    each visibility in types
-                        option(value=visibility)=visibility 
-                br
-                br
-            button(type="submit" id="post_button") Submit Post
+                label(for="pet_petId") Pet Type:
+                select
+                    each i in pets
+                        option(value=i.pet_id)= i.pet_id
+            button(type="submit") Create Post
 

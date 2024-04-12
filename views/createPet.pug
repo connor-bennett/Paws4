@@ -6,6 +6,14 @@ block content
         br
         h3.text-center Enter Pet Information Below: 
 
+
+        form(method="POST", encytpe="multipart/form-data", action="/upload")
+            input(type="file", name="file" multiple) 
+            input(type="submit", name='file' value="upload")  
+                
+
+        br
+        br
         form(action="/createPet", method="POST")
             div.form-group
                 label(for="pet_id") PetID: 
@@ -27,10 +35,12 @@ block content
                 input(type="text", id="pet_breed", name='pet_breed', placeholder="Enter Pet's Breed")
                 br
             div.form-group 
+
                 label(for="pet_image") Profile Picture: 
                 input(type="text", id="pet_image", name="pet_image", placeholder="Enter your pets profile picture!")
                 br
             div.form-group 
+            
                 label(for="pet_bio") Pet Bio: 
                 input(type="textbox", name="pet_bio", id='pet_bio', placeholder="Tell people more about your pet!")
                 br

@@ -19,23 +19,27 @@ block content
         
         form(action="/updateUser", method="POST")
             div.form-group
-                label(for="new_email") Edit Email:
-                input(type="email", id="new_email", name="new_email", value=user.email)
+
+                label(for="new_email") New Email:
+                input(type="email", id="new_email", name="new_email", required, value=user.email)
                 br
             div.form-group 
-                label(for="new_display_name") Edit Display Name:
-                input(type="text", id="new_display_name", name="new_display_name",  value=user.display_name)
+                label(for="new_display_name") Display Name:
+                input(type="text", id="new_display_name", name="new_display_name", required, value=user.display_name)
                 br
             div.form-group 
-                label(for="new_profile_img") Edit Profile Picture:
-                input(type="text", id="new_profile_img", name="new_profile_img", value=user.profile_img)
+                //figure out how to add picutures through files
+                label(for="new_profile_picture") Profile Picture:
+                input(type="text", id="new_profile_picture", name="new_profile_picture", value=user.profile_picture)
+
                 br
             div.form-group 
                 //manually inputed for now, can change to take in languages of a translater API
                 - var langs = ["English", "Spanish", "French", "German"]
-                label(for="new_preferred_lang") Edit Preferred Language:
+
+                label(for="new_preferred_lang") Preferred Language:
                 select(name="new_preferred_lang", id="new_preferred_lang", required)
-                    option(value=user.language) #{user.language}
+
                     each language in langs 
                         option(value=language)= language[0] +language.slice(1)
                 br

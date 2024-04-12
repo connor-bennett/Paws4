@@ -13,37 +13,16 @@ html
 
 
     body
-        nav.navbar.navbar-expand-lg.navbar-light.bg-light
-            .container
-                a.navbar-brand(href='/') Home
-            
-                button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
-                    span.navbar-toggler-icon
-            
-                .collapse.navbar-collapse#navbarSupportedContent
-                    ul.navbar-nav.mr-auto
-                        li.nav-item.active
-                            a.nav-link(href='/login') Log in 
-                        li.nav-item
-                            a.nav-link(href='/createUser') Create new User
-                        li.nav-item
-                            a.nav-link(href='/createPet') Create a Pet Profile
-                        li.nav-item
-                            a.nav-link(href='/createPost') Create a Post
-                        li.nav-item
-                            a.nav-link(href='/profiles') My Profile
-        block content
-        //- nav.navbar
-        //- ul.navbar-nav
-        //-     a.navbar-brand(href='/') Home
-        //-     li.nav-item
-        //-         a.nav-link(href='/login') Login
-        //-     li.nav-item
-        //-         a.nav-link(href='/createUser') Sign Up
-        //-     li.nav-item
-        //-         a.nav-link(href='/createPet') Create Pet Profile
-        //-     li.nav-item
-        //-         a.nav-link(href='/createPost') Create Post
-         
-            
-        //-     block content
+        nav.navbar
+        ul.navbar-nav
+            a.navbar-brand(href='/') Home
+            li.nav-item
+                a.nav-link(href='/login') Login
+            li.nav-item
+                a.nav-link(href='/createUser') Sign Up
+            li.nav-item
+                a.nav-link(href='/createPet') Create Pet Profile
+            li.nav-item
+                a.nav-link(href='/createPost') Create Post
+            li.nav-item 
+                a.nav-link(href='/updatePet') Update Pet
