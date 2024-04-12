@@ -166,7 +166,8 @@ app.get('/updatePassword', async (req, res) =>{
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
     if (!req.session.user){
-      return res.send('You are not logged in');
+      return res.render('home',{errorMessage: 'Need to log in first. '})
+      // return res.send('Not logged in');
     }
 
     // Render the createPet page 
@@ -468,8 +469,8 @@ app.post('/createPet', async (req, res) => {
 
 // Check if user is logged in (user information exists in session)
 if (!req.session.user){
-  return res.send('You are not logged in');
-  
+  return res.render('home',{errorMessage: 'Need to log in first. '})
+  // return res.send('Not logged in');
 }
 
 
