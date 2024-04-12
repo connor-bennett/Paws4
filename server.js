@@ -63,30 +63,57 @@ app.get('/createUser', async(req, res) => {
 
 // ------- Search User --------------------
 
+// ------- Search User --------------------
 app.get('/search', async (req, res) => {
   const searchQuery = req.query.q;
   if (!searchQuery) {
-      res.redirect(302, '/');
-      return;
+    res.redirect(302, '/');
+    return;
   }
-  const userSql = "SELECT * FROM users_table WHERE user_name LIKE '%" + searchQuery + "%'";
-  const petSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'";
+  let userSearch = req.query.userSearch === 'on';
+  let petSearch = req.query.petSearch === 'on';
+  let userNameSearch = req.query.userNameSearch === 'on';
+
+  let userSql = "";
+  let petSql = "";
+  let userNameSql = "";
+
+  if (userSearch) {
+    userSql = "SELECT * FROM users_table WHERE user_name LIKE '%" + searchQuery + "%'";
+  } else if (petSearch) {
+    petSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'";
+  } else if (userNameSearch) {
+    userNameSql = "SELECT * FROM users_table WHERE display_name LIKE '%" + searchQuery + "%'";
+  }
+
   try {
-      // Execute both queries in parallel
-      const [userResult, petResult] = await Promise.all([
-          executeSQL(userSql),
-          executeSQL(petSql)
-      ]);
-      res.render('home', {
-          title: `Search results for: ${searchQuery}`,
-          userSearchResults: userResult,
-          petSearchResults: petResult,
-          searchQuery,
-      });
+    let userResult = [];
+    let petResult = [];
+    let userNameResult = [];
+
+    if (userSql) {
+      userResult = await executeSQL(userSql);
+    }
+    if (petSql) {
+      petResult = await executeSQL(petSql);
+    }
+    if (userNameSql) {
+      userNameResult = await executeSQL(userNameSql);
+    }
+
+    res.render('home', {
+      title: `Search results for: ${searchQuery}`,
+      userSearchResults: userResult,
+      petSearchResults: petResult,
+      userNameSearchResults: userNameResult,
+      searchQuery,
+    });
   } catch (error) {
-      res.send('Error searching for users and pets: ' + error.message);
+    res.send('Error searching for users and pets: ' + error.message);
   }
 });
+
+
 
 
 

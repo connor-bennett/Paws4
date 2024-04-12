@@ -1,4 +1,4 @@
-extends default 
+extends default
 
 block content
     .home-search 
@@ -6,22 +6,27 @@ block content
         form(id='searchForm' action='/search' method='GET')
             input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
             button(type='submit') Search
+            br
+            label(for='userSearch') Search Users
+            input#userSearch(type='checkbox' name='userSearch' checked)
+            label(for='userSearch') Search By Display Name <!-- Corrected label ID -->
+            input#UserNameSearch(type='checkbox' name='UserNameSearch')
+            label(for='petSearch') Search Pets
+            input#petSearch(type='checkbox' name='petSearch')
 
     .container
-        if userSearchResults && userSearchResults.length > 0
-            ul.search-results
-                each user in userSearchResults
-                    li
-                        img(src=user.profile_img, width="100", height="100", alt='User Profile Image')
-                        p #{user.user_name}
+        if userSearchResults && userSearchResults.length
+            each user in userSearchResults
+                .user
+                    p #{user.user_name}
+        else
+            .result-count
+                strong No results found for #{searchQuery}.
 
-        if petSearchResults && petSearchResults.length > 0
-            ul.search-results
-                each pet in petSearchResults
-                    li
-                        img(src=pet.profile_image, width="100", height="100", alt='Pet Profile Image')
-                        p #{pet.pet_name}
-
-        if !userSearchResults.length && !petSearchResults.length
+        if petSearchResults && petSearchResults.length
+            each pet in petSearchResults
+                .pet
+                    p #{pet.pet_name}
+        else
             .result-count
                 strong No results found for #{searchQuery}.
