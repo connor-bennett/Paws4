@@ -31,30 +31,32 @@ html
         li.nav-item  
           a.nav-item(href='/messages') Message Board
           
-    #profilePics 
-      h2(style="text-align: center;") Pictures 
+    //- #profilePics 
+    //-   h2(style="text-align: center;") Pictures 
       
-      img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+    //-   img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
 
-      each post in postsData
-        img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+    //-   each post in postsData
+    //-     img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
 
     #posts
       h2 Posts
       each post in postsData
+        - const date = new Date(post.post_timeStamp)
         .postContainer
           .postData
+            p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
             img(src=post.posting_image, width="400", height="400", alt="Post image")
             p= post.post_text
-
+            
         li.nav-item 
           a.nav-link(href='/transferPet') Transfer Pet
         li.nav-item 
           a.nav-link(href="/messages") Messages
 
-    #friends
-      <h2 style="text-align: center"> Bio:  </h2>
-      <p style="text-align: center"> #{pet.pet_bio} </p>
+    //- #friends
+    //-   <h2 style="text-align: center"> Bio:  </h2>
+    //-   <p style="text-align: center"> #{pet.pet_bio} </p>
 
 
     #profileInfo
@@ -73,4 +75,6 @@ html
       p Type: #{pet.pet_type} | #{pet.pet_breed} 
       p 
         a(href="/profiles?user_id="+owner.id)  Owner: #{owner.user_name}
+      p Bio: #{pet.pet_bio}
+      
     block content
