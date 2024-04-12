@@ -9,7 +9,6 @@ const app = express();
 const mysql = require("mysql");
 const pool = dbConnection();
 const bodyParser = require('body-parser');
-const axios = require('axios');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -121,6 +120,7 @@ app.get('/profiles', async (req, res) => {
 
   if (!req.session.user) {
       return res.send('You are not logged in');
+  }
 
   const user = req.session.user;
 
