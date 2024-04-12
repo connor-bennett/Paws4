@@ -554,7 +554,7 @@ app.post('/createPet', async (req, res) => {
   const petName = req.body.pet_name;
   const petType = req.body.pet_type;
   const petBreed = req.body.pet_breed;
-  const petProfile = req.body.pet_profile;
+  const petProfile = req.body.pet_image;
   const petBio = req.body.pet_bio;
   
   //Check for existing petID
@@ -566,9 +566,9 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
+  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
   //Execute the query
   try{
