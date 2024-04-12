@@ -456,7 +456,7 @@ app.post('/createUser', async(req, res) => {
       // Execute the query
       await executeSQL(sql, values);
 
-      res.send('User created successfully!');
+      res.redirect('/profiles');
 
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
@@ -490,7 +490,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.redirect('profiles');
+        res.redirect('/profiles');
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -533,7 +533,7 @@ app.post('/updatePassword', async (req, res) => {
       //Execute the query
       await executeSQL(sql, params);
 
-      res.send('Password Successfully Updated!');
+      res.redirect('/profiles');
 
   } catch (error) {
     return res.send("Error updating password: " + error.message);
@@ -566,14 +566,14 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
   let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.send('Pet created successfully!');
+    res.redirect('/profiles');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
@@ -591,14 +591,15 @@ app.post('/createPet', async (req, res) => {
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
+  const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
-  let values = [newName,newType, newBreed, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, profile_image = ?, pet_bio = ? WHERE pet_id = ?";
+  let values = [newName, newType, newBreed, newProfPic, newBio, petID];
 
   try{
-    await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    await executeSQL (sql, values);
+    res.redirect('/profiles');
 
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
