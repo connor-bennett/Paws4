@@ -124,20 +124,27 @@ app.get('/profiles', async (req, res) => {
 
   const user = req.session.user;
 
+  let userID;
+  if (!req.query.user_id){
+    userID = req.session.user.id;
+  } else {
+     userID = req.query.user_id;
+  }
+
   // SQL query to fetch user information
   let sql = "SELECT * FROM users_table WHERE id = ?";
-  let userData = await executeSQL(sql, [user.id]);
+  let userData = await executeSQL(sql, userID);
 
   // SQL query to fetch posts for the user
   sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
-  let postsData = await executeSQL(sql, [user.user_name]);
+  let postsData = await executeSQL(sql, [userData[0].user_name]);
 
   let postCount = postsData.length;
 
   // SQL query to fetch pets for the user
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";
 
-  let petData = await executeSQL(sql, [user.id]);
+  let petData = await executeSQL(sql, userID);
 
 
   res.render('profiles', {
