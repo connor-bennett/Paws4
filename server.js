@@ -118,8 +118,8 @@ app.get('/search', async (req, res) => {
 
 app.get('/profiles', async (req, res) => {
 
-  if (!req.session.user) {
-      return res.send('You are not logged in');
+  if (!req.session.user){
+    return res.render('home',{errorMessage: 'You need to log in first. '})
   }
 
   const user = req.session.user;
@@ -456,7 +456,7 @@ app.post('/createUser', async(req, res) => {
       // Execute the query
       await executeSQL(sql, values);
 
-      res.send('User created successfully!');
+      res.redirect('/profiles');
 
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
@@ -490,7 +490,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.redirect('profiles');
+        res.redirect('/profiles');
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -533,7 +533,7 @@ app.post('/updatePassword', async (req, res) => {
       //Execute the query
       await executeSQL(sql, params);
 
-      res.send('Password Successfully Updated!');
+      res.redirect('/profiles');
 
   } catch (error) {
     return res.send("Error updating password: " + error.message);
@@ -554,7 +554,7 @@ app.post('/createPet', async (req, res) => {
   const petName = req.body.pet_name;
   const petType = req.body.pet_type;
   const petBreed = req.body.pet_breed;
-  const petProfile = req.body.pet_profile;
+  const petProfile = req.body.pet_image;
   const petBio = req.body.pet_bio;
   
   //Check for existing petID
@@ -566,14 +566,14 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
+  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.send('Pet created successfully!');
+    res.redirect('/profiles');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
@@ -591,14 +591,15 @@ app.post('/createPet', async (req, res) => {
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
+  const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
-  let values = [newName,newType, newBreed, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, profile_image = ?, pet_bio = ? WHERE pet_id = ?";
+  let values = [newName, newType, newBreed, newProfPic, newBio, petID];
 
   try{
-    await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    await executeSQL (sql, values);
+    res.redirect('/profiles');
 
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
@@ -609,37 +610,59 @@ app.post('/createPet', async (req, res) => {
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
-
-    return res.send('Not logged in');
+    return res.render('home',{errorMessage: 'Need to log in first. '})
   }
   
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
-  const stringTagPet = req.body.post_tag;
-  const pet = req.body.pet_petId;
-  const timestamp = new Date().valueOf();
+  let pet = req.body.pet_petId;
+  const visibility = req.body.post_visibility;
   // Insert the information
-  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
-             VALUES (?,?,?,?,?,?,?)`;
-  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, post_visibility)
+             VALUES (?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, visibility];
   
-  //Execute the query
-  
+  // execute the query 
   try{
-    await executeSQL(sql, values);
-    res.send('post created successfully!');
-  } catch (error) {
-    return res.send ('Error in creating post: ' + error.message);
+    data = await executeSQL(sql, values);
+  } catch(error){
+    // return res.send ('Error in creating post: ' + error.message);
+    return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
   }
+  const id = data.insertId;
+  // check if pets were not tagged in post 
+  if(!pet){
+    return res.render('createPost',{successful: 'Created Post Succesfully!'})
+    // return res.send('post created successfully!');
+  }
+  // if only one pet is selected, wont be an array type
+  if(!Array.isArray(pet)){
+    pet = [pet];
+  }
+  //Execute the 2nd query (multiple pet_ids from pet array)
+  pet.forEach(async pet_id => {
+    try{
+      let sql2 = `INSERT INTO petsTaggedPosts_table (pet_owner_id, pet_id, post_id)
+      VALUES (?,?,?)`;
+      let values2 = [req.session.user.id, pet_id, id];
+      await executeSQL(sql2, values2);
+      return res.redirect('/profiles')
+      // res.send('post created successfully!');
+    }catch(error){
+      // return res.send ('Error in creating post: ' + error.message);
+      return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
+    }
+    });
   
   });
 
 // ----------POST  INITATE TRANSFER PET  route.----------------
 // POST route for handling Initiate pet transfer
 app.post('/IntitiateTransfer', async (req, res) => {
+  const user = req.session.user;
   const receivingUsername = req.body.username;
   const petName = req.body.petUserName;
-  const sendingUser = req.session.user.user_name;
+  const sendingUser = user.user_name;
 
   // Get sender and receiver IDs
   let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
