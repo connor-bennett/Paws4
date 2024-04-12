@@ -31,19 +31,21 @@ html
         li.nav-item  
           a.nav-item(href='/messages') Message Board
           
-    #profilePics 
-      h2(style="text-align: center;") Pictures 
-      each pet in petData
-        img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+    //- #profilePics 
+    //-   h2(style="text-align: center;") Pictures 
+    //-   each pet in petData
+    //-     img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
 
-      each post in postsData
-        img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+    //-   each post in postsData
+    //-     img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
 
     #posts
       h2 Posts
       each post in postsData
+        - const date = new Date(post.post_timeStamp)
         .postContainer
           .postData
+            p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
             img(src=post.posting_image, width="400", height="400", alt="Post image")
             p= post.post_text
 
@@ -52,9 +54,9 @@ html
         li.nav-item 
           a.nav-link(href="/messages") Messages
 
-    #friends
-      <h2 style="text-align: center"> Friends</h2>
-      <p style="text-align: center"> friends here</p>
+    //- #friends
+    //-   <h2 style="text-align: center"> Friends</h2>
+    //-   <p style="text-align: center"> friends here</p>
 
     #petprofiles
       <h2 style="text-align: center"> Pet Profiles</h2>
@@ -66,6 +68,7 @@ html
     #profileInfo
       <h2 style="text-align: center"> UserInfo</h2>
       div(style="display: flex; justify-content: center; align-items: center;")
+
         img(src=user.profile_img, width="200", height="200", alt="User profile image")
       <br>
       p User Name: #{user.user_name}

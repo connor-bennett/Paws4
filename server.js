@@ -118,9 +118,9 @@ app.get('/search', async (req, res) => {
 // ---------- profile user route.---------
 
 app.get('/profiles', async (req, res) => {
+
   if (!req.session.user) {
       return res.send('You are not logged in');
-
 
   const user = req.session.user;
 
@@ -167,8 +167,9 @@ app.get('/petProfile', async (req, res) => {
   sql = "SELECT * FROM users_table WHERE id = ?"
   let ownerData = await executeSQL(sql, petData[0].owner_id);
   // SQL query to fetch posts for the pet
-  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
-  let postsData = await executeSQL(sql, [ownerData[0].user_name]);
+  // sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
+  let postsData = await executeSQL(sql, petData[0].pet_id);
   let postCount = postsData.length;
 
 
@@ -221,7 +222,8 @@ app.get('/updatePassword', async (req, res) =>{
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
     if (!req.session.user){
-      return res.send('You are not logged in');
+      return res.render('home',{errorMessage: 'Need to log in first. '})
+      // return res.send('Not logged in');
     }
 
     // Render the createPet page 
@@ -539,7 +541,7 @@ app.post('/createPet', async (req, res) => {
   if (!req.session.user){
     return res.send('You are not logged in');
   }
-
+  
   // Get the new information from the form submission
   const petID = req.body.pet_id;    
   const petName = req.body.pet_name;
