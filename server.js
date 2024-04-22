@@ -456,7 +456,7 @@ app.post('/createUser', async(req, res) => {
       // Execute the query
       await executeSQL(sql, values);
 
-      res.redirect('/profiles');
+      res.redirect('/login');
 
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
@@ -475,7 +475,7 @@ app.post('/updateUser', async (req, res) => {
     const newEmail = req.body.new_email;
     const newDisplayName = req.body.new_display_name;
 
-    const newProfPic = req.body.new_profile_picture;
+    const newProfPic = req.body.new_profile_img;
 
     const newLang = req.body.new_preferred_lang;
 
@@ -662,7 +662,7 @@ app.post('/IntitiateTransfer', async (req, res) => {
   const user = req.session.user;
   const receivingUsername = req.body.username;
   const petName = req.body.petUserName;
-  const sendingUser = user.user_name;
+  const sendingUser = req.session.user.user_name;
 
   // Get sender and receiver IDs
   let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
