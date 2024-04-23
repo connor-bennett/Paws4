@@ -71,60 +71,94 @@ app.get('/search', async (req, res) => {
     return;
   }
 
-  let userSearch = req.query.userSearch === 'on';         // used for check box filter selection
-  let petSearch = req.query.petSearch === 'on';           // used for check box filter selection
-  let userNameSearch = req.query.userNameSearch === 'on'; // used for check box filter selection
+  let userSearch = req.query.userSearch === 'on';                         // used for check box filter selection
+  let userDisplayNameSearch = req.query.userDisplayNameSearch === 'on';   // used for check box filter selection
+  let locationSearch = req.query.locationSearch === 'on';                 // used for check box filter selection
+  let petId = req.query.petId === 'on';                                   // used for check box filter selection
+  let petName = req.query.petName === 'on';                               // used for check box filter selection
 
-  let userSql = "";      // declare query as an empty string
-  let petSql = "";       // declare query as an empty string
-  let userNameSql = "";  // declare query as an empty string
+  let userSql = "";             // declare user searchquery as an empty string
+  let userDisplaySql = "";      // declareuser display name search query as an empty string
+  let locationSql = "";         // declare location searchquery as an empty string
+  let petIdSql = "";            // declare pet id search query as an empty string
+  let petNameSql = "";           // declare pet name search query as an empty string
+
 
   if (userSearch)          // if box checked
   {
     userSql = "SELECT * FROM users_table WHERE user_name LIKE '%" + searchQuery + "%'"; // search user table for query of user name
   } 
-  else if (petSearch)       // if box checked 
+
+  else if (userDisplayNameSearch)       // if box checked 
   {
-    petSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'";    // search pet table for query of pet name
+    userDisplaySql = "SELECT * FROM users_table WHERE display_name LIKE '%" + searchQuery + "%'";    // search pet table for query of pet name
   } 
-  else if (userNameSearch)  // if box checked 
+
+  else if (locationSearch)  // if box checked 
   {
-    userNameSql = "SELECT * FROM users_table WHERE display_name LIKE '%" + searchQuery + "%'"; // search user table for query of display name
+    locationSql = "SELECT * FROM users_table WHERE location LIKE '%" + searchQuery + "%'"; // search user table for query of display name
   }
+
+  else if (petId)  // if box checked 
+  {
+    petIdSql = "SELECT * FROM pets_table WHERE pet_id LIKE '%" + searchQuery + "%'"; // search user table for query of display name
+  }
+
+  else if (petName)  // if box checked 
+  {
+    petNameSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'"; // search user table for query of display name
+  }
+
 
   try 
   {
-    let userResult = [];      // declares empty user result variable
-    let petResult = [];       // declares empty pet result variable
-    let userNameResult = [];  // declares empty usernameResult variable
+    let userSearchResults = [];       // declares empty user result variable
+    let userDisplayNameResults = [];   // declares empty userDisplayNameResult variable
+    let locationResults = [];          // declares empty locationResult variable
+    let petIdResults = [];             // declares petIdResult variable
+    let petNameResults = [];           // declares petNameResult variable
 
     if (userSql) 
     {
-      userResult = await executeSQL(userSql); // pass user asynchronously through sql
+      userSearchResults = await executeSQL(userSql); // pass user asynchronously through sql
     }
 
-    if (petSql) 
+    if (userDisplaySql) 
     {
-      petResult = await executeSQL(petSql); // pass user pet asynchronously through sql
+      userDisplayNameResults = await executeSQL(userDisplaySql); // pass user asynchronously through sql
     }
 
-    if (userNameSql) 
+    if (locationSql) 
     {
-      userNameResult = await executeSQL(userNameSql); // pass user Display Name asynchronously through sql
+      locationResults = await executeSQL(locationSql); 
     }
+
+    if (petIdSql) 
+    {
+      petIdResults = await executeSQL(petIdSql); 
+    }
+
+    if (petNameSql) 
+    {
+      petNameResults = await executeSQL(petNameSql); 
+    }
+
+   
 
     res.render('home', 
     {
-      title: `Search results for: ${searchQuery}`, // search results title
-      userSearchResults: userResult,               // pass user search results to webpage template
-      petSearchResults: petResult,                 // pass pet search results to webpage template
-      userNameSearchResults: userNameResult,       // pass user Display Name results to webpage template
-      searchQuery,                                 // pass search query into into template
+      title: `Search results for: ${searchQuery}`,    // search results title
+      userSearchResults: userSearchResults,                         // pass user search results to webpage template
+      userDisplayNameResults: userDisplayNameResults,   // pass pet search results to webpage template
+      locationResults: locationResults,                // pass user Display Name results to webpage template
+      petIdResults:petIdResults,
+      petNameResults:petNameResults,
+      searchQuery,                                   // pass search query into into template
     });
   } 
   catch (error) // if error display this message 
   {
-    res.send('Error searching for users and pets: ' + error.message);
+    res.send('Error: ' + error.message);
   }
 });
 

@@ -9,26 +9,67 @@ block content
             input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
             button(type='submit') Search
             br
+            br
+
             label(for='userSearch') Search Users
-            input#userSearch(type='checkbox' name='userSearch' checked)
-            label(for='userSearch') Search By Display Name <!-- Corrected label ID -->
-            input#UserNameSearch(type='checkbox' name='UserNameSearch')
-            label(for='petSearch') Search Pets
-            input#petSearch(type='checkbox' name='petSearch')
+            |&nbsp;
+            input#userSearch(type='checkbox' name='userSearch')
+            |&nbsp;
+            |&nbsp;
+            |&nbsp;
+
+            label(for='userDisplayNameSearch') Search By Display Name 
+            |&nbsp;
+            input#userDisplayNameSearch(type='checkbox' name='userDisplayNameSearch')
+            |&nbsp;
+            |&nbsp;
+            |&nbsp;
+
+            label(for='locationSearch') Search  by Location
+            |&nbsp;
+            input#locationSearch(type='checkbox' name='locationSearch')
+            |&nbsp;
+            |&nbsp;
+            |&nbsp;
+
+            label(for='petId') Search Pet Id
+            |&nbsp;
+            input#petId(type='checkbox' name='petId')
+            |&nbsp;
+            |&nbsp;
+            |&nbsp;
+            
+            label(for='petName') Search Pet name
+            |&nbsp;
+            input#petName(type='checkbox' name='petName')
 
     .container
         if userSearchResults && userSearchResults.length
             each user in userSearchResults
                 .user
                     p #{user.user_name}
+
+        else if userDisplayNameResults && userDisplayNameResults.length
+            each user in userDisplayNameResults
+                .user
+                    p #{user.display_name}
+
+        else if locationResults && locationResults.length
+            each user in locationResults
+                .user
+                    p #{user.user_name}
+
+        else if petIdResults && petIdResults.length
+            each pet in petIdResults
+                .user
+                    p #{pet.pet_id}
+
+        else if petNameResults && petNameResults.length
+            each pet in petNameResults
+                .user
+                    p #{pet.pet_name}
+
         else
             .result-count
                 strong No results found for #{searchQuery}.
 
-        if petSearchResults && petSearchResults.length
-            each pet in petSearchResults
-                .pet
-                    p #{pet.pet_name}
-        else
-            .result-count
-                strong No results found for #{searchQuery}.
