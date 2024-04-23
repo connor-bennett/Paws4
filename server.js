@@ -19,6 +19,8 @@ app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
 const { exec } = require('child_process');
+const { truncate } = require('fs');
+const { executionAsyncResource } = require('async_hooks');
 
 // ===================================================================
 // MIDDLEWARE
@@ -848,6 +850,46 @@ app.post('/acceptTransfer', async (req, res) => {
      await executeSQL(sql2, values2);
   }
  
+});
+// -----------------Send Friend Request POST Route ---------------------
+app.get('/friendReq', async (req,res) =>{
+  const senderId = req.session.user.id;
+  const receiverId = req.query.user_id;
+  
+  //Check if already requested./friends
+
+  //send message
+  let sql = "INSERT INTO messages (sender_id, receiver_id, message_content, is_friend_req) VALUES (?, ?, ?, ?)";
+  let values = [senderId, receiverId, "Friend Request!", true];
+  try {
+    await executeSQL(sql, values);
+    res.redirect("profiles")
+  } catch (error) {
+    res.send("error" + error.message);
+  }
+  
+});
+//----------------------Accept Friend Request POST route ------------------------
+app.post('/acceptFriend', async (req, res) =>{
+  const recipient = req.session.user.id;
+  const sender = req.body.sender_id;
+  const message = req.body.message_id;
+  const answer = req.body.answer;
+  if (answer === "Accept"){
+    //two sqls to register under both user id's
+    let sql = "INSERT INTO friends_table (user_id, friend_id) VALUES (?,?)";
+    let values1 = [recipient,sender];
+    let values2 = [sender,recipient];
+    await executeSQL(sql,values1);
+    await executeSQL(sql,values2); 
+  }
+  //If "deny" do nothing
+
+  //delete message from database
+    let sql1 = "DELETE FROM messages WHERE message_id = ?";
+    await executeSQL(sql1, message);
+  //redirect page
+  res.redirect('profiles')
 });
 
 

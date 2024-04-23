@@ -70,8 +70,11 @@ html
     #profileInfo
       <h2 style="text-align: center"> UserInfo
       -if (userData.id == user.id) {
-        a(href="/updateUser?user_id="+user.id) 
+        a(href="/updateUser?user_id="+userData.id) 
           img(src="/images/edit.png" alt="edit" width="25")
+      -} else {
+        a(href="/friendReq?user_id="+userData.id) 
+          img(src="/images/friendReq.png" alt="Friend Request" width="25")
       -}
       </h2>
       div(style="display: flex; justify-content: center; align-items: center;")
