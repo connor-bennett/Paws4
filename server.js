@@ -9,6 +9,7 @@ const app = express();
 const mysql = require("mysql");
 const pool = dbConnection();
 const bodyParser = require('body-parser');
+const axios = require('axios');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -61,54 +62,103 @@ app.get('/createUser', async(req, res) => {
   });
 
 // ------- Search User --------------------
-
 // ------- Search User --------------------
 app.get('/search', async (req, res) => {
   const searchQuery = req.query.q;
+  
   if (!searchQuery) {
     res.redirect(302, '/');
     return;
   }
-  let userSearch = req.query.userSearch === 'on';
-  let petSearch = req.query.petSearch === 'on';
-  let userNameSearch = req.query.userNameSearch === 'on';
 
-  let userSql = "";
-  let petSql = "";
-  let userNameSql = "";
+  let userSearch = req.query.userSearch === 'on';                         // used for check box filter selection
+  let userDisplayNameSearch = req.query.userDisplayNameSearch === 'on';   // used for check box filter selection
+  let locationSearch = req.query.locationSearch === 'on';                 // used for check box filter selection
+  let petId = req.query.petId === 'on';                                   // used for check box filter selection
+  let petName = req.query.petName === 'on';                               // used for check box filter selection
 
-  if (userSearch) {
-    userSql = "SELECT * FROM users_table WHERE user_name LIKE '%" + searchQuery + "%'";
-  } else if (petSearch) {
-    petSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'";
-  } else if (userNameSearch) {
-    userNameSql = "SELECT * FROM users_table WHERE display_name LIKE '%" + searchQuery + "%'";
+  let userSql = "";             // declare user searchquery as an empty string
+  let userDisplaySql = "";      // declareuser display name search query as an empty string
+  let locationSql = "";         // declare location searchquery as an empty string
+  let petIdSql = "";            // declare pet id search query as an empty string
+  let petNameSql = "";           // declare pet name search query as an empty string
+
+
+  if (userSearch)          // if box checked
+  {
+    userSql = "SELECT * FROM users_table WHERE user_name LIKE '%" + searchQuery + "%'"; // search user table for query of user name
+  } 
+
+  else if (userDisplayNameSearch)       // if box checked 
+  {
+    userDisplaySql = "SELECT * FROM users_table WHERE display_name LIKE '%" + searchQuery + "%'";    // search pet table for query of pet name
+  } 
+
+  else if (locationSearch)  // if box checked 
+  {
+    locationSql = "SELECT * FROM users_table WHERE location LIKE '%" + searchQuery + "%'"; // search user table for query of display name
   }
 
-  try {
-    let userResult = [];
-    let petResult = [];
-    let userNameResult = [];
+  else if (petId)  // if box checked 
+  {
+    petIdSql = "SELECT * FROM pets_table WHERE pet_id LIKE '%" + searchQuery + "%'"; // search user table for query of display name
+  }
 
-    if (userSql) {
-      userResult = await executeSQL(userSql);
-    }
-    if (petSql) {
-      petResult = await executeSQL(petSql);
-    }
-    if (userNameSql) {
-      userNameResult = await executeSQL(userNameSql);
+  else if (petName)  // if box checked 
+  {
+    petNameSql = "SELECT * FROM pets_table WHERE pet_name LIKE '%" + searchQuery + "%'"; // search user table for query of display name
+  }
+
+
+  try 
+  {
+    let userSearchResults = [];       // declares empty user result variable
+    let userDisplayNameResults = [];   // declares empty userDisplayNameResult variable
+    let locationResults = [];          // declares empty locationResult variable
+    let petIdResults = [];             // declares petIdResult variable
+    let petNameResults = [];           // declares petNameResult variable
+
+    if (userSql) 
+    {
+      userSearchResults = await executeSQL(userSql); // pass user asynchronously through sql
     }
 
-    res.render('home', {
-      title: `Search results for: ${searchQuery}`,
-      userSearchResults: userResult,
-      petSearchResults: petResult,
-      userNameSearchResults: userNameResult,
-      searchQuery,
+    if (userDisplaySql) 
+    {
+      userDisplayNameResults = await executeSQL(userDisplaySql); // pass user asynchronously through sql
+    }
+
+    if (locationSql) 
+    {
+      locationResults = await executeSQL(locationSql); 
+    }
+
+    if (petIdSql) 
+    {
+      petIdResults = await executeSQL(petIdSql); 
+    }
+
+    if (petNameSql) 
+    {
+      petNameResults = await executeSQL(petNameSql); 
+    }
+
+   
+
+    res.render('home', 
+    {
+      title: `Search results for: ${searchQuery}`,    // search results title
+      userSearchResults: userSearchResults,                         // pass user search results to webpage template
+      userDisplayNameResults: userDisplayNameResults,   // pass pet search results to webpage template
+      locationResults: locationResults,                // pass user Display Name results to webpage template
+      petIdResults:petIdResults,
+      petNameResults:petNameResults,
+      searchQuery,                                   // pass search query into into template
     });
-  } catch (error) {
-    res.send('Error searching for users and pets: ' + error.message);
+  } 
+  catch (error) // if error display this message 
+  {
+    res.send('Error: ' + error.message);
   }
 });
 
@@ -116,80 +166,35 @@ app.get('/search', async (req, res) => {
 // ---------- profile user route.---------
 // ---------- profile user route.---------
 
-app.get('/profiles', async (req, res) => {
-
-  if (!req.session.user){
-    return res.render('home',{errorMessage: 'You need to log in first. '})
-  }
-
-  const user = req.session.user;
-
-  let userID;
-  if (!req.query.user_id){
-    userID = req.session.user.id;
-  } else {
-     userID = req.query.user_id;
-  }
-
-  // SQL query to fetch user information
-  let sql = "SELECT * FROM users_table WHERE id = ?";
-  let userData = await executeSQL(sql, userID);
-
-  // SQL query to fetch posts for the user
-  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
-  let postsData = await executeSQL(sql, [userData[0].user_name]);
-
-  let postCount = postsData.length;
-
-  // SQL query to fetch pets for the user
-  sql = "SELECT * FROM pets_table WHERE owner_id = ?";
-
-  let petData = await executeSQL(sql, userID);
-
-
-  res.render('profiles', {
-      title: 'Paws Connect',
-      user: user,
-      userData: userData[0], // Pass the user data from table to the template
-      postsData: postsData, // Pass the user's posts from table to the template
-      postCount: postCount, // Pass the post count to the template
-      petData: petData, // Pass the user's pets from table to the template
-  });
-});
-
-
-// ---------- Pet Profile ---------
-
-app.get('/petProfile', async (req, res) => {
-  if (!req.session.user) {
+app.get('/profiles', async (req, res) => {    // route to user profiles//
+  if (!req.session.user) {                    // if not logged in display message
       return res.send('You are not logged in');
   }
-  const user = req.session.user;
-  let petID = req.query.pet_id;
-  
-  // SQL query to fetch pet information
-  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
-  let petData = await executeSQL(sql, petID);
 
-  sql = "SELECT * FROM users_table WHERE id = ?"
-  let ownerData = await executeSQL(sql, petData[0].owner_id);
-  // SQL query to fetch posts for the pet
-  // sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
-  sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
-  let postsData = await executeSQL(sql, petData[0].pet_id);
-  let postCount = postsData.length;
+  const user = req.session.user; // contains session user information
 
+  // SQL query to fetch user information
+  let sql = "SELECT * FROM users_table WHERE id = ?";     // select from users_table where id = user
+  let userData = await executeSQL(sql, [user.id]);        // pass user id asynchronously through sql
 
-  res.render('petProfile', {
-      title: 'Paws Connect',
-      pet: petData[0],
-      user: user,
-      owner: ownerData[0],
-      postsData: postsData, // Pass the user's posts from table to the template
-      postCount: postCount, // Pass the post count to the template
+  // SQL query to fetch posts for the user
+  sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?"; // select from posts_table where id = user
+  let postsData = await executeSQL(sql, [user.user_name]);        // pass user id asynchronously through sql
+  let postCount = postsData.length;                               // counts number of posts user created
+
+  // SQL query to fetch pets for the user
+  sql = "SELECT * FROM pets_table WHERE owner_id = ?";  // select from pets_table where id = user
+  let petData = await executeSQL(sql, [user.id]);       // pass user id asynchronously through sql
+
+  res.render('profiles', {      // renders information for the user session for the profile template
+      title: 'Paws Connect',    // title of profiles
+      user: user,               // pass user id for the session to the template
+      userData: userData[0],    // Pass user data from table to profile template
+      postsData: postsData,     // Pass user's posts from table to profile template
+      postCount: postCount,     // Pass post count to profile template
+      petData: petData,         // Pass user's pets from table to profile template
   });
 });
-
 
 
 
@@ -229,15 +234,13 @@ app.get('/updatePassword', async (req, res) =>{
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
     if (!req.session.user){
-      return res.render('home',{errorMessage: 'Need to log in first. '})
-      // return res.send('Not logged in');
+      return res.send('You are not logged in');
     }
 
     // Render the createPet page 
     res.render('createPet', {
         title: 'Paws Connect'});
 });
-
 //-----------Manage Pets ---------------
 app.get("/updatePet", async (req, res) =>{
   //Check if user is Logged in (user information exists in session)
@@ -245,14 +248,12 @@ app.get("/updatePet", async (req, res) =>{
     return res.send('You are not logged in!');
   }
 
-
-  let petID = req.query.pet_id;
+  //hard coding to get first pet from ownsers list for now
   
-  let sql = "SELECT * FROM pets_table WHERE pet_id = ?"
+  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
 
   try{
-    let data = await executeSQL(sql, petID);
-    
+    let data = await executeSQL(sql, req.session.user.id);
     //Render route
     res.render('updatePet',{
       title: 'Paws Connect',
@@ -285,7 +286,6 @@ app.get("/removePet", async (req,res) =>{
     return res.send("Error: " + error.message);
   }
 
-
 });
 //-----------Deleting Pet from Account--------------
 app.get('/deletePet', async (req, res)=>{
@@ -308,10 +308,7 @@ app.get('/deletePet', async (req, res)=>{
 app.get('/createPost', async (req, res) => {
   // Check if user is logged in 
 if (!req.session.user){
-
-  return res.render('home',{errorMessage: 'Need to log in first. '})
-  // return res.send('Not logged in');
-
+  return res.send('Not logged in');
 }
 const owner_id = req.session.user.id;
 let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
@@ -320,7 +317,6 @@ let params = [owner_id];
 //Execute the query
 try{
   let data = await executeSQL(sql, params);
-
   res.render('createPost',{
     title: 'Paws Connect',
     pets: data})
@@ -341,17 +337,13 @@ app.get('/transferPet', async(req, res) => {
 // ------------Messages pet-----------------------
 app.get('/messages', async(req, res) => {
   // Fetch messages from the database
-
   const user_id = req.session.user.id;
-
 
   sql = `SELECT messages.*, users_table.user_name AS sender_name
   FROM messages
   JOIN users_table ON messages.sender_id = users_table.id
   WHERE messages.receiver_id = ?`;
-
   values = [user_id];
-
 
   // Get recipient from the clicked message, if any
   const clickedRecipient = req.query.recipient;
@@ -365,7 +357,6 @@ app.get('/messages', async(req, res) => {
   res.render('messages', {
     title: 'Paws Connect', 
     messages: messages,
-
     currentRecipient: currentRecipient
   });
 });
@@ -455,9 +446,7 @@ app.post('/createUser', async(req, res) => {
 
       // Execute the query
       await executeSQL(sql, values);
-
-      res.redirect('/profiles');
-
+      res.send('User created successfully!');
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
   }
@@ -474,9 +463,7 @@ app.post('/updateUser', async (req, res) => {
     // Get the new information from the form submission
     const newEmail = req.body.new_email;
     const newDisplayName = req.body.new_display_name;
-
     const newProfPic = req.body.new_profile_picture;
-
     const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
@@ -490,7 +477,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.redirect('/profiles');
+        res.send('User information updated successfully');
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -532,9 +519,7 @@ app.post('/updatePassword', async (req, res) => {
 
       //Execute the query
       await executeSQL(sql, params);
-
-      res.redirect('/profiles');
-
+      res.send('Password Successfully Updated!');
   } catch (error) {
     return res.send("Error updating password: " + error.message);
   }
@@ -543,18 +528,17 @@ app.post('/updatePassword', async (req, res) => {
 
 //-------------POST Create Pet Profile Route----------------------
 app.post('/createPet', async (req, res) => {
-
   // Check if user is logged in (user information exists in session)
   if (!req.session.user){
     return res.send('You are not logged in');
   }
-  
+
   // Get the new information from the form submission
   const petID = req.body.pet_id;    
   const petName = req.body.pet_name;
   const petType = req.body.pet_type;
   const petBreed = req.body.pet_breed;
-  const petProfile = req.body.pet_image;
+  const petProfile = req.body.pet_profile;
   const petBio = req.body.pet_bio;
   
   //Check for existing petID
@@ -566,41 +550,37 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
              VALUES (?,?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
+  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
 
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.redirect('/profiles');
+    res.send('Pet created successfully!');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
  });
-
 
  //-------------POST Update Pet Profile Route-------------------------
  app.post('/updatePet', async (req,res) => {
   //Check if user is logged in
   if (!req.session.user){
     return res.send("Not logged in");
-
   }
   const petID = req.body.pet_id;
   const newName = req.body.new_pet_name;
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
-  const newProfPic = req.body.new_profile_image;
   const newBio = req.body.new_pet_bio;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, profile_image = ?, pet_bio = ? WHERE pet_id = ?";
-  let values = [newName, newType, newBreed, newProfPic, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newBio, petID];
 
   try{
-    await executeSQL (sql, values);
-    res.redirect('/profiles');
-
+    await executeSQL(sql, values);
+    res.send('Pet has been updated!');
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
@@ -610,59 +590,36 @@ app.post('/createPet', async (req, res) => {
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
-    return res.render('home',{errorMessage: 'Need to log in first. '})
+    return res.send('Not logged in');
   }
   
   const postImage = req.body.posting_image;
   const postText = req.body.post_text;
-  let pet = req.body.pet_petId;
-  const visibility = req.body.post_visibility;
+  const stringTagPet = req.body.post_tag;
+  const pet = req.body.pet_petId;
+  const timestamp = new Date().valueOf();
   // Insert the information
-  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, post_visibility)
-             VALUES (?,?,?,?,?)`;
-  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, visibility];
+  let sql = `INSERT INTO posts_table (pet_owner_id,pet_owner_username, posting_image, post_text, stringTagPet,pet_id, post_timeStamp)
+             VALUES (?,?,?,?,?,?,?)`;
+  let values = [req.session.user.id, req.session.user.user_name, postImage, postText, stringTagPet, pet, timestamp];
   
-  // execute the query 
+  //Execute the query
+  
   try{
-    data = await executeSQL(sql, values);
-  } catch(error){
-    // return res.send ('Error in creating post: ' + error.message);
-    return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
+    await executeSQL(sql, values);
+    res.send('post created successfully!');
+  } catch (error) {
+    return res.send ('Error in creating post: ' + error.message);
   }
-  const id = data.insertId;
-  // check if pets were not tagged in post 
-  if(!pet){
-    return res.render('createPost',{successful: 'Created Post Succesfully!'})
-    // return res.send('post created successfully!');
-  }
-  // if only one pet is selected, wont be an array type
-  if(!Array.isArray(pet)){
-    pet = [pet];
-  }
-  //Execute the 2nd query (multiple pet_ids from pet array)
-  pet.forEach(async pet_id => {
-    try{
-      let sql2 = `INSERT INTO petsTaggedPosts_table (pet_owner_id, pet_id, post_id)
-      VALUES (?,?,?)`;
-      let values2 = [req.session.user.id, pet_id, id];
-      await executeSQL(sql2, values2);
-      return res.redirect('/profiles')
-      // res.send('post created successfully!');
-    }catch(error){
-      // return res.send ('Error in creating post: ' + error.message);
-      return res.render('createPost',{errorMessage: 'Error in creating post: '+ error.message})
-    }
-    });
   
   });
 
 // ----------POST  INITATE TRANSFER PET  route.----------------
 // POST route for handling Initiate pet transfer
 app.post('/IntitiateTransfer', async (req, res) => {
-  const user = req.session.user;
   const receivingUsername = req.body.username;
   const petName = req.body.petUserName;
-  const sendingUser = user.user_name;
+  const sendingUser = req.session.user.user_name;
 
   // Get sender and receiver IDs
   let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
@@ -766,89 +723,8 @@ app.post('/acceptTransfer', async (req, res) => {
      await executeSQL(sql2, values2);
   }
  
-
 });
 
-// ---------- Send message Post route.---------
-app.post('/sendmessage', async (req, res) => {
-   // Extract data from the request body
-   const recipient_username = req.body.recipient;
-   const message = req.body.message;
-
-   console.log(" session : " + req.session.user.id);
-    
-   // Assuming you have session handling middleware to get the user ID
-   const sender_id = req.body.sender_id;
-   console.log("ID: " + sender_id);
-
-   const sql1 = `SELECT id FROM users_table WHERE user_name = ?`;
-   const values1 = [recipient_username];
-
-   let result = await executeSQL(sql1, values1);
-   let user_id = result[0].id;
-
-   // Insert the message into the database
-   const sql = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
-   const values = [sender_id, user_id, message];
-
-   try {
-       // Execute the SQL query to insert the message
-       await executeSQL(sql, values);
-       res.send("Message Sent");
-   } catch (error) {
-       // Handle errors appropriately, such as rendering an error page or sending an error response
-       console.error("Error sending message:", error);
-       res.status(500).send("Error sending message. Please try again later.");
-   }
-});
-
-app.post('/messages', (req, res) => {
-  // Handle sending messages
-  // Save message to the database
-  // Redirect back to the message center page
-
-});
-
-// -----------------Accept/Transfer Post Route --------------------------
-app.post('/acceptTransfer', async (req, res) => {
-  const recipient = req.session.user; 
-  const messageId = req.body.messageId; 
-  const sender_id = req.body.senderId;
-  const pet_id = req.body.pet_id; 
-  const action = req.body.action;
-
-  if(action === "accept"){
-    try {
-      // Update pets_table to change the owner
-      const sql1 = `UPDATE pets_table SET owner_id = ? WHERE id = ?`;
-      const values1 = [sender_id, pet_id];
-      await executeSQL(sql1, values1);
-
-      // Remove the associated message from messages table
-      const sql2 = `DELETE FROM messages WHERE message_id = ?`;
-      const values2 = [messageId];
-      await executeSQL(sql2, values2);
-
-      // send new owner message if accepted
-      const newOwnerMessage = `Congratulations! Your request to transfer ownership of the pet has been accepted.`;
-      const sql3 = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
-      const values3 = [recipient.id, sender_id, newOwnerMessage];
-      await executeSQL(sql3, values3);
-
-      res.status(200).send("Transfer accepted successfully.");
-    } catch (error) {
-      console.error("Error accepting transfer:", error);
-      res.status(500).send("Error accepting transfer.");
-    }
-  }
-  if(action ==="deny"){
-     // Remove the associated message from messages table
-     const sql2 = `DELETE FROM messages WHERE message_id = ?`;
-     const values2 = [messageId];
-     await executeSQL(sql2, values2);
-  }
- 
-});
 
 
 // ===================================================================
@@ -866,7 +742,6 @@ function executeSQL(sql, params) {
     });
   });
 }
-
 
 
   
