@@ -20,6 +20,8 @@ app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'public')));
 const session = require('express-session');
 const { exec } = require('child_process');
+const { truncate } = require('fs');
+const { executionAsyncResource } = require('async_hooks');
 
 // ===================================================================
 // MIDDLEWARE
@@ -195,11 +197,6 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
       petData: petData,         // Pass user's pets from table to profile template
   });
 });
-
-
-
-
-
 
 // ------- Update User --------------------
 // GET route for rendering updateUser page
@@ -446,7 +443,9 @@ app.post('/createUser', async(req, res) => {
 
       // Execute the query
       await executeSQL(sql, values);
-      res.send('User created successfully!');
+
+      res.redirect('/login');
+
   } catch (error) {
       return res.send('Error creating user: ' + error.message);
   }
@@ -463,7 +462,9 @@ app.post('/updateUser', async (req, res) => {
     // Get the new information from the form submission
     const newEmail = req.body.new_email;
     const newDisplayName = req.body.new_display_name;
-    const newProfPic = req.body.new_profile_picture;
+
+    const newProfPic = req.body.new_profile_img;
+
     const newLang = req.body.new_preferred_lang;
 
     // Update the user's information in the database
@@ -725,6 +726,93 @@ app.post('/acceptTransfer', async (req, res) => {
  
 });
 
+app.post('/messages', (req, res) => {
+  // Handle sending messages
+  // Save message to the database
+  // Redirect back to the message center page
+
+});
+
+// -----------------Accept/Transfer Post Route --------------------------
+app.post('/acceptTransfer', async (req, res) => {
+  const recipient = req.session.user; 
+  const messageId = req.body.messageId; 
+  const sender_id = req.body.senderId;
+  const pet_id = req.body.pet_id; 
+  const action = req.body.action;
+
+  if(action === "accept"){
+    try {
+      // Update pets_table to change the owner
+      const sql1 = `UPDATE pets_table SET owner_id = ? WHERE id = ?`;
+      const values1 = [sender_id, pet_id];
+      await executeSQL(sql1, values1);
+
+      // Remove the associated message from messages table
+      const sql2 = `DELETE FROM messages WHERE message_id = ?`;
+      const values2 = [messageId];
+      await executeSQL(sql2, values2);
+
+      // send new owner message if accepted
+      const newOwnerMessage = `Congratulations! Your request to transfer ownership of the pet has been accepted.`;
+      const sql3 = `INSERT INTO messages (sender_id, receiver_id, message_content) VALUES (?, ?, ?)`;
+      const values3 = [recipient.id, sender_id, newOwnerMessage];
+      await executeSQL(sql3, values3);
+
+      res.status(200).send("Transfer accepted successfully.");
+    } catch (error) {
+      console.error("Error accepting transfer:", error);
+      res.status(500).send("Error accepting transfer.");
+    }
+  }
+  if(action ==="deny"){
+     // Remove the associated message from messages table
+     const sql2 = `DELETE FROM messages WHERE message_id = ?`;
+     const values2 = [messageId];
+     await executeSQL(sql2, values2);
+  }
+ 
+});
+// -----------------Send Friend Request POST Route ---------------------
+app.get('/friendReq', async (req,res) =>{
+  const senderId = req.session.user.id;
+  const receiverId = req.query.user_id;
+  
+  //Check if already requested./friends
+
+  //send message
+  let sql = "INSERT INTO messages (sender_id, receiver_id, message_content, is_friend_req) VALUES (?, ?, ?, ?)";
+  let values = [senderId, receiverId, "Friend Request!", true];
+  try {
+    await executeSQL(sql, values);
+    res.redirect("profiles")
+  } catch (error) {
+    res.send("error" + error.message);
+  }
+  
+});
+//----------------------Accept Friend Request POST route ------------------------
+app.post('/acceptFriend', async (req, res) =>{
+  const recipient = req.session.user.id;
+  const sender = req.body.sender_id;
+  const message = req.body.message_id;
+  const answer = req.body.answer;
+  if (answer === "Accept"){
+    //two sqls to register under both user id's
+    let sql = "INSERT INTO friends_table (user_id, friend_id) VALUES (?,?)";
+    let values1 = [recipient,sender];
+    let values2 = [sender,recipient];
+    await executeSQL(sql,values1);
+    await executeSQL(sql,values2); 
+  }
+  //If "deny" do nothing
+
+  //delete message from database
+    let sql1 = "DELETE FROM messages WHERE message_id = ?";
+    await executeSQL(sql1, message);
+  //redirect page
+  res.redirect('profiles')
+});
 
 
 // ===================================================================
