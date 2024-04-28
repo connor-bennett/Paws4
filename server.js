@@ -175,18 +175,50 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
 
   const user = req.session.user; // contains session user information
 
+  let userID;
+  let friends;
+  let requested;
+  if(!req.query.user_id){
+    userID = req.session.user.id;
+    friends = false;
+    requested = false;
+  } else {
+    userID = req.query.user_id;
+    let sql1 = "SELECT * FROM friends_table WHERE user_ID = ?";
+    let data = await executeSQL(sql1, [user.id]);
+    data.forEach(element => {
+      if(element.friend_ID == userID){
+        friends = true;
+      } else {
+        friends = false;
+      }
+    });
+  // //for some reason only reads in userID and not user.id :(((
+  //   sql1 = "SELECT * FROM messages WHERE sender_id = ? AND receiver_id = ?";
+  //   let params = ([user.id], userID);
+  //   data = await executeSQL(sql1, params);  
+  //   data.forEach(element => {
+  //     if(element.is_friend_req == true){
+  //       requested = true;
+  //     } else {
+          requested = false;
+  //     }
+  //   });
+    
+  }
+
   // SQL query to fetch user information
   let sql = "SELECT * FROM users_table WHERE id = ?";     // select from users_table where id = user
-  let userData = await executeSQL(sql, [user.id]);        // pass user id asynchronously through sql
+  let userData = await executeSQL(sql, userID);        // pass user id asynchronously through sql
 
   // SQL query to fetch posts for the user
   sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?"; // select from posts_table where id = user
-  let postsData = await executeSQL(sql, [user.user_name]);        // pass user id asynchronously through sql
+  let postsData = await executeSQL(sql, [userData[0].user_name]);        // pass user id asynchronously through sql
   let postCount = postsData.length;                               // counts number of posts user created
 
   // SQL query to fetch pets for the user
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";  // select from pets_table where id = user
-  let petData = await executeSQL(sql, [user.id]);       // pass user id asynchronously through sql
+  let petData = await executeSQL(sql, userID);       // pass user id asynchronously through sql
 
   res.render('profiles', {      // renders information for the user session for the profile template
       title: 'Paws Connect',    // title of profiles
@@ -195,6 +227,40 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
       postsData: postsData,     // Pass user's posts from table to profile template
       postCount: postCount,     // Pass post count to profile template
       petData: petData,         // Pass user's pets from table to profile template
+      friends: friends,
+      requested: requested,
+  });
+});
+
+// ---------- Pet Profile ---------
+
+app.get('/petProfile', async (req, res) => {
+  if (!req.session.user) {
+      return res.send('You are not logged in');
+  }
+  const user = req.session.user;
+  let petID = req.query.pet_id;
+  
+  // SQL query to fetch pet information
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let petData = await executeSQL(sql, petID);
+
+  sql = "SELECT * FROM users_table WHERE id = ?"
+  let ownerData = await executeSQL(sql, petData[0].owner_id);
+  // SQL query to fetch posts for the pet
+  // sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
+  let postsData = await executeSQL(sql, petData[0].pet_id);
+  let postCount = postsData.length;
+
+
+  res.render('petProfile', {
+      title: 'Paws Connect',
+      pet: petData[0],
+      user: user,
+      owner: ownerData[0],
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the template
   });
 });
 
@@ -366,6 +432,21 @@ app.get('/profiles', (req, res) => {
     if (err) throw err;
     res.render('profiles', { user_name: result });
   });
+});
+
+//-------- Remove Friend ---------------
+app.get('/removeFriend', async (req, res) => {
+  const currentUser = req.session.user.id;
+  const friendUser = req.query.user_id;
+  let sql = "DELETE FROM friends_table WHERE user_ID = ? AND friend_ID = ?";
+  try{
+    await executeSQL(sql, [currentUser, friendUser]);
+    await executeSQL(sql, [friendUser, currentUser]);
+    res.redirect('profiles?user_id='+friendUser);
+  } catch (error){
+    res.send(error.message);
+  }
+  
 });
 
 // ---------------------------------------------
@@ -785,7 +866,7 @@ app.get('/friendReq', async (req,res) =>{
   let values = [senderId, receiverId, "Friend Request!", true];
   try {
     await executeSQL(sql, values);
-    res.redirect("profiles")
+    res.redirect("profiles?user_id="+receiverId);
   } catch (error) {
     res.send("error" + error.message);
   }
@@ -811,7 +892,7 @@ app.post('/acceptFriend', async (req, res) =>{
     let sql1 = "DELETE FROM messages WHERE message_id = ?";
     await executeSQL(sql1, message);
   //redirect page
-  res.redirect('profiles')
+  res.redirect('messages')
 });
 
 
