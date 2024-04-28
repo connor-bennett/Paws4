@@ -62,28 +62,28 @@ html
       <h2 style="text-align: center"> Pet Profiles</h2>
       each pet in petData
         img(src=pet.profile_image, width="100", height="100", alt="Pet image")
-        p  
-          a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
+
+        a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
         br
+
 
     #profileInfo
       <h2 style="text-align: center"> UserInfo
-      -if (userData.id == user.id){
-        a(href="/updateUser") 
+      -if (userData.id == user.id) {
+        a(href="/updateUser?user_id="+userData.id) 
           img(src="/images/edit.png" alt="edit" width="25")
+      -} else {
+        a(href="/friendReq?user_id="+userData.id) 
+          img(src="/images/friendReq.png" alt="Friend Request" width="25")
       -}
       </h2>
-
       div(style="display: flex; justify-content: center; align-items: center;")
 
-        img(src=user.profile_img, width="200", height="200", alt="User profile image")
-        
-      p User Name: #{user.display_name}
-      br
-      p Email: #{user.email}
-      br
-      p Language: #{user.language}
-      br
-      p Number of Posts: #{postCount}
+        img(src=userData.profile_img, width="200", height="200", alt="User profile image")
+      <br>
+      p User Name: #{userData.display_name}
+      p Email: #{userData.email}
+      p Language: #{userData.language}
 
+      P Number of Posts: #{postCount}
     block content
