@@ -74,7 +74,7 @@ html
       p PetID: #{pet.pet_id}
       p Type: #{pet.pet_type} | #{pet.pet_breed} 
       p 
-        a(href="/profiles?user_id="+owner.id)  Owner: #{owner.user_name}
+        a(href="/profiles?user_id="+pet.owner_id)  Owner: #{owner.user_name}
       p Bio: #{pet.pet_bio}
       
     block content

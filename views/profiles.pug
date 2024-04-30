@@ -74,6 +74,11 @@ html
       -if (userData.id == user.id) {
         a(href="/updateUser?user_id="+userData.id) 
           img(src="/images/edit.png" alt="edit" width="25")
+      -} else if (friends){
+          a(href='/removeFriend?user_id='+userData.id)
+            img(src='/images/unfollow.png' alt='Remove Friend' width="50")
+      -} else if (requested) {
+          <p>REQUESTED!</p>
       -} else {
         a(href="/friendReq?user_id="+userData.id) 
           img(src="/images/friendReq.png" alt="Friend Request" width="25")
