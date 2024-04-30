@@ -530,6 +530,7 @@ app.get('/profiles', (req, res) => {
 //---------Connnections Get route--------------
 app.get('/connections', async (req, res) => {
   res.render('connections', {title:'Paws Connect'});
+});
 
   
 //-------- Remove Friend ---------------
