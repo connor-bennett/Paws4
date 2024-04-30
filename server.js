@@ -322,7 +322,28 @@ try{
   return res.send ('Error in creating data: ' + error.message);
 }
 
+}); 
+// ------------ translate post ------------------
+app.get('/translatePost', async(req, res) => {
+if(!req.session.user){
+  return res.send('You need to log in')
+}
+const user = req.session.user.id;
+let sql = "SELECT post_text FROM post_table WHERE pet_owner_id = ?";
+let params = [user];
+
+try{
+  let data = await executeSQL(sql, params);
+  res.render('profiles',{
+    title: 'Paws Connect',
+    pets: data
+  })
+}catch (error){
+  return res.send('Error in translating post: '+error.message);
+}
+
 });
+
 
 // ------- transfer Pet Page --------------------
 app.get('/transferPet', async(req, res) => {
@@ -812,6 +833,56 @@ app.post('/acceptFriend', async (req, res) =>{
     await executeSQL(sql1, message);
   //redirect page
   res.redirect('profiles')
+});
+// -------------post translatePost -----------------------
+app.post('/translatePost', async (req, res) => {
+  // logged in?
+  // write script from profiles 
+if(!req.session.user){
+  return res.send('You need to log in first.');
+
+}
+const TextTranslationClient = require("@azure-rest/ai-translation-text").default
+
+const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
+const endpoint = "https://api.cognitive.microsofttranslator.com/";
+const region = "westus2";
+
+async function main() {
+
+  console.log("== Text translation sample ==");
+
+  const translateCredential = {
+    key: apiKey,
+    region,
+  };
+  const translationClient = new TextTranslationClient(endpoint,translateCredential);
+  const user_planguage = req.session.user.language;
+  // const inputText = [{ text: "This is a test." }];
+  const inputText = req.body.post;
+  const translateResponse = await translationClient.path("/translate").post({
+    body: inputText,
+    queryParameters: {
+      to: user_planguage,
+      from: "en",
+    },
+  });
+
+  const translations = translateResponse.body;
+  for (const translation of translations) {
+    console.log(
+      `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
+    );
+  }
+}
+
+main().catch((err) => {
+    console.error("An error occurred:", err);
+    process.exit(1);
+  });
+
+  module.exports = { main };
+
 });
 
 

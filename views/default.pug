@@ -12,19 +12,24 @@ html
         script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
 
 
-    body
-        nav.navbar
-        ul.navbar-nav
-            a.navbar-brand(href='/') Home
-            li.nav-item
-                a.nav-link(href='/login') Login
-            li.nav-item
-                a.nav-link(href='/createUser') Sign Up
-            li.nav-item
-                a.nav-link(href='/createPet') Create Pet Profile
-            li.nav-item
-                a.nav-link(href='/createPost') Create Post
-            li.nav-item 
-                a.nav-link(href='/updatePet') Update Pet
+    
+        nav.navbar.navbar-expand-lg.navbar-light.bg-light
+            .container
+                a.navbar-brand(href='/') Home
+            
+                button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
+                    span.navbar-toggler-icon
+            
+                .collapse.navbar-collapse#navbarSupportedContent
+                    ul.navbar-nav.mr-auto
+                        a.nav-link(href='/login') Login
+                            li.nav-item
+                        a.nav-link(href='/createUser') Sign Up
+                            li.nav-item
+                        a.nav-link(href='/createPet') Create Pet Profile
+                            li.nav-item
+                        a.nav-link(href='/createPost') Create Post
+                            li.nav-item 
+                        a.nav-link(href='/updatePet') Update Pet
 
     block content

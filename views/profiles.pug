@@ -49,10 +49,13 @@ html
             img(src=post.posting_image, width="400", height="400", alt="Post image")
             p= post.post_text
 
+            
+        //- li.nav-item 
+        //-   a.nav-link(href='/transferPet') Transfer Pet
+        //- li.nav-item 
+        //-   a.nav-link(href="/messages") Messages
         li.nav-item 
-          a.nav-link(href='/transferPet') Transfer Pet
-        li.nav-item 
-          a.nav-link(href="/messages") Messages
+          a.nav-link(href="/translate") translate post
 
     //- #friends
     //-   <h2 style="text-align: center"> Friends</h2>
@@ -87,3 +90,5 @@ html
 
       P Number of Posts: #{postCount}
     block content
+    
+// Script: function to send post text to translation post 
