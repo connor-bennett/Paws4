@@ -1,7 +1,5 @@
 // SERVER.JS file 
 // Place app requiremtns/dependencies here
-// DB connection and SQL
-// Wire up to routes here
 
 const express = require('express');
 const path = require('path');
@@ -10,6 +8,8 @@ const mysql = require("mysql");
 const pool = dbConnection();
 const bodyParser = require('body-parser');
 const axios = require('axios');
+app.use(express.static('public'));
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -23,6 +23,7 @@ const { exec } = require('child_process');
 const { truncate } = require('fs');
 const { executionAsyncResource } = require('async_hooks');
 
+
 // ===================================================================
 // MIDDLEWARE
 // ===================================================================
@@ -33,6 +34,98 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
+
+// ===================================================================
+// Connection Calculation
+// ===================================================================
+
+//------------------------------------------------------
+// create adjacency list out of friends data
+//------------------------------------------------------
+
+async function generateAdjacecnyList(){
+  const adjacency_list = new Map();
+
+
+  // Query user IDs from the users_table
+  let userIDsQuery = `SELECT id FROM users_table`; 
+  let userIDs = await executeSQL(userIDsQuery);
+
+  // Query friendship data from the friends_table
+  let friendshipDataQuery = `SELECT * FROM friends_table`; 
+  let rawFriendshipData = await executeSQL(friendshipDataQuery);
+
+  // Format raw data to adjacency list
+  for (let entry of rawFriendshipData) {
+      let userID = entry.user_ID;
+      let friendID = entry.friend_ID;
+
+      // Initialize adjacency list for userID if not present
+      if (!adjacency_list.has(userID)) {
+          adjacency_list.set(userID, []);
+      }
+
+      // Add friendID to the adjacency list of userID
+      adjacency_list.get(userID).push(friendID);
+  }
+
+  // Set users who are unreachable since they have no connections
+  for (let userData of userIDs) {
+    let userID = userData.id; // Extract user ID from RowDataPacket
+    if (!adjacency_list.has(userID)) {
+        adjacency_list.set(userID, []);
+    }
+  }
+
+  return adjacency_list;
+}
+
+//---------------------------------------------
+//                  BFS
+//----------------------------------------------
+async function bfs(adjacency_list, startUserID, endUserID) {
+  // Initialize visited map to keep track of visited users and their distances
+  let visited = new Map();
+
+  // Initialize queue for BFS
+  let queue = [];
+
+  // Enqueue the start user ID with distance 0
+  queue.push({ user: startUserID, distance: 0 });
+
+  // Mark start user as visited
+  visited.set(startUserID, 0);
+
+  // While queue is not empty
+  while (queue.length > 0) {
+    // Dequeue a user from the queue
+    let { user, distance } = queue.shift();
+
+    // If the end user ID is found, return the distance
+    if (user === endUserID) {
+      return distance;
+    }
+
+    // Get the friends of the current user
+    let friends = adjacency_list.get(user);
+    if (friends) {
+      // Iterate through the friend list
+      for (let friendID of friends) {
+        // If friend hasn't been visited
+        if (!visited.has(friendID)) {
+          // Mark friend as visited and record its distance
+          visited.set(friendID, distance + 1);
+          console.log("Visited friend", friendID, " : ", " distance: ", distance + 1, " visited: ", visited);
+          // Enqueue friend with updated distance
+          queue.push({ user: friendID, distance: distance + 1 });
+        }
+      }
+    }
+  }
+  // If end user is not reachable from start user
+  return -1;
+}
+
 
 // ===================================================================
 // ROUTES 
@@ -434,6 +527,11 @@ app.get('/profiles', (req, res) => {
   });
 });
 
+//---------Connnections Get route--------------
+app.get('/connections', async (req, res) => {
+  res.render('connections', {title:'Paws Connect'});
+
+  
 //-------- Remove Friend ---------------
 app.get('/removeFriend', async (req, res) => {
   const currentUser = req.session.user.id;
@@ -446,7 +544,6 @@ app.get('/removeFriend', async (req, res) => {
   } catch (error){
     res.send(error.message);
   }
-  
 });
 
 // ---------------------------------------------
@@ -895,6 +992,59 @@ app.post('/acceptFriend', async (req, res) =>{
   res.redirect('messages')
 });
 
+//----------------------connections POST route ------------------------
+// app.post('/connections', async(req, res) => {
+//   const curUserId = req.session.user.id;
+//   console.log("session user id: ", curUserId);
+//   const username2 = req.body.username2;
+//   // Check if both usernames are provided
+//   if (!username2) {
+//     res.status(400).send("Username is required");
+//     return;
+// }
+
+//   // Retrieve user IDs based on usernames from the database
+//   const userIDQuery = `SELECT id FROM users_table WHERE user_name = ?`;
+//   const userIDs = await executeSQL(userIDQuery, [username2]);
+
+// // Generate adjacency list
+// const adjacency_list = await generateAdjacecnyList();
+// console.log("..adjacecny list created ....")
+
+// // Perform BFS to find the number of connections removed between the users
+// const connectionsRemoved = await bfs(adjacency_list, curUserId, userIDs[0].id);
+// console.log("connections: ", connectionsRemoved);
+// res.send({connectionsRemoved});
+// });
+app.post('/connections', async(req, res) => {
+  const curUserId = req.session.user.id;
+  const username2 = req.body.username2;
+  
+  if (!username2) {
+      res.status(400).send("Username is required");
+      return;
+  }
+
+  // Retrieve user IDs based on usernames from the database
+  const userIDQuery = `SELECT id FROM users_table WHERE user_name = ?`;
+  const userIDs = await executeSQL(userIDQuery, [username2]);
+
+  if (!userIDs.length) {
+      res.status(404).send("User not found");
+      return;
+  }
+
+  // Generate adjacency list
+  const adjacency_list = await generateAdjacecnyList();
+
+  // Perform BFS to find the number of connections removed between the users
+  const connectionsRemoved = await bfs(adjacency_list, curUserId, userIDs[0].id);
+  
+  res.send({connectionsRemoved});
+});
+
+
+
 
 // ===================================================================
 // DATA BASE SET UP
@@ -912,34 +1062,36 @@ function executeSQL(sql, params) {
   });
 }
 
+// ---------------DataBase Connection-------------------------
+function dbConnection(){
+  const pool = mysql.createPool({
+    connectionLimit: 10,
+    host: "hngomrlb3vfq3jcr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+    user: "r8y141rt6xns3ejq",
+    password: "zwv1v6y4c0dffay3",
+    database: "bxr2et3njo3yvg0y"
+  });
 
-  
-  // ---------------DataBase Connection-------------------------
-  function dbConnection(){
-    const pool = mysql.createPool({
-      connectionLimit: 10,
-      host: "hngomrlb3vfq3jcr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
-      user: "r8y141rt6xns3ejq",
-      password: "zwv1v6y4c0dffay3",
-      database: "bxr2et3njo3yvg0y"
-    });
-  
-    // Check for connection errors
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.error(".......Error connecting to the database:", err);
-        return;
-      }
-      console.log("......Connected to the database!");
-      connection.release(); // Release the connection
-    });
-    return pool;
-  }
+  // Check for connection errors
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error(".......Error connecting to the database:", err);
+      return;
+    }
+    console.log("......Connected to the database!");
+    connection.release(); // Release the connection
+  });
+  return pool;
+}
 
 // ===================================================================
 //  APP RUN
 // ===================================================================
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 3000, async () => {
   console.log(`Paws server started on port: ${server.address().port}`);
+  const list = await generateAdjacecnyList();
+  console.log("BFS: Success");
+  console.log(list);
+
 });
