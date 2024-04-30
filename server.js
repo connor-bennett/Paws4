@@ -43,9 +43,19 @@ app.use(session({
 // ---------------------------------------------
 
 // ------- ROUTE --------------------
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+    if (!req.session.user){
+      res.redirect('login');
+    }
+    const user = req.session.user;
+    let sql = "SELECT * FROM posts_table p JOIN friends_table f ON p.pet_owner_id = f.friend_ID  WHERE f.user_ID = ?";
+    let friendPostData = await executeSQL(sql, [user.id]);
+    sql = "SELECT * FROM posts_table WHERE post_visibility = ?";
+    let publicPostData = await executeSQL(sql, "Public");
     res.render('home', {
       title: 'Paws Connect',
+      friendPost: friendPostData,
+      publicPost: publicPostData,
     });
   });
 
@@ -477,7 +487,7 @@ app.post('/login', async(req, res) => {
     req.session.user = user[0];
 
     // Authentication successful, redirect to dashboard or another page
-    res.redirect('/profiles');
+    res.redirect('/');
 });
 
 
