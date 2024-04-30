@@ -193,17 +193,17 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
         friends = false;
       }
     });
-  // //for some reason only reads in userID and not user.id :(((
-  //   sql1 = "SELECT * FROM messages WHERE sender_id = ? AND receiver_id = ?";
-  //   let params = ([user.id], userID);
-  //   data = await executeSQL(sql1, params);  
-  //   data.forEach(element => {
-  //     if(element.is_friend_req == true){
-  //       requested = true;
-  //     } else {
+
+    let sql2 = "SELECT * FROM messages WHERE sender_id = ? AND receiver_id = ?";
+    let params = ([user.id, userID]);
+    data = await executeSQL(sql2, params);  
+    data.forEach(element => {
+      if(element.is_friend_req == true){
+         requested = true;
+      } else {
           requested = false;
-  //     }
-  //   });
+       }
+    });
     
   }
 
@@ -247,12 +247,12 @@ app.get('/petProfile', async (req, res) => {
 
   sql = "SELECT * FROM users_table WHERE id = ?"
   let ownerData = await executeSQL(sql, petData[0].owner_id);
+
   // SQL query to fetch posts for the pet
   // sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
   sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
   let postsData = await executeSQL(sql, petData[0].pet_id);
   let postCount = postsData.length;
-
 
   res.render('petProfile', {
       title: 'Paws Connect',
@@ -425,14 +425,6 @@ app.get('/messages', async(req, res) => {
 });
 
 
-// ---------- profile user route.---------
-app.get('/profiles', (req, res) => {
-  let sql = 'SELECT user_name FROM users_table';
-  pool.query(sql, (err, result) => {
-    if (err) throw err;
-    res.render('profiles', { user_name: result });
-  });
-});
 
 //-------- Remove Friend ---------------
 app.get('/removeFriend', async (req, res) => {
