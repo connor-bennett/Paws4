@@ -1,8 +1,5 @@
 // SERVER.JS file 
 // Place app requiremtns/dependencies here
-// DB connection and SQL
-// Wire up to routes here
-
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -10,6 +7,10 @@ const mysql = require("mysql");
 const pool = dbConnection();
 const bodyParser = require('body-parser');
 const axios = require('axios');
+app.use(express.static('public'));
+const multer = require('multer');
+const upload = multer(); // setups multer with default settings
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -23,6 +24,7 @@ const { exec } = require('child_process');
 const { truncate } = require('fs');
 const { executionAsyncResource } = require('async_hooks');
 
+
 // ===================================================================
 // MIDDLEWARE
 // ===================================================================
@@ -35,6 +37,99 @@ app.use(session({
 }));
 
 // ===================================================================
+// Connection Calculation
+// ===================================================================
+
+//------------------------------------------------------
+// create adjacency list out of friends data
+//------------------------------------------------------
+
+async function generateAdjacencyList(){
+  const adjacency_list = new Map();
+
+
+  // Query user IDs from the users_table
+  let userIDsQuery = `SELECT id FROM users_table`; 
+  let userIDs = await executeSQL(userIDsQuery);
+
+  // Query friendship data from the friends_table
+  let friendshipDataQuery = `SELECT * FROM friends_table`; 
+  let rawFriendshipData = await executeSQL(friendshipDataQuery);
+
+  // Format raw data to adjacency list
+  for (let entry of rawFriendshipData) {
+      let userID = entry.user_ID;
+      let friendID = entry.friend_ID;
+
+      // Initialize adjacency list for userID if not present
+      if (!adjacency_list.has(userID)) {
+          adjacency_list.set(userID, []);
+      }
+
+      // Add friendID to the adjacency list of userID
+      adjacency_list.get(userID).push(friendID);
+  }
+
+  // Set users who are unreachable since they have no connections
+  for (let userData of userIDs) {
+    let userID = userData.id; // Extract user ID from RowDataPacket
+    if (!adjacency_list.has(userID)) {
+        adjacency_list.set(userID, []);
+    }
+  }
+
+  return adjacency_list;
+}
+
+//---------------------------------------------
+//                  BFS
+//----------------------------------------------
+async function bfs(adjacency_list, startUserID, endUserID) {
+  // Initialize visited map to keep track of visited users and their distances
+  let visited = new Map();
+
+  // Initialize queue for BFS
+  let queue = [];
+
+  // Enqueue the start user ID with distance 0
+  queue.push({ user: startUserID, distance: 0 });
+
+  // Mark start user as visited
+  visited.set(startUserID, 0);
+
+  // While queue is not empty
+  while (queue.length > 0) {
+    // Dequeue a user from the queue
+    let { user, distance } = queue.shift();
+
+    // If the end user ID is found, return the distance
+    if (user === endUserID) {
+      return distance;
+    }
+
+    // Get the friends of the current user
+    let friends = adjacency_list.get(user);
+    if (friends) {
+      // Iterate through the friend list
+      for (let friendID of friends) {
+        // If friend hasn't been visited
+        if (!visited.has(friendID)) {
+          // Mark friend as visited and record its distance
+          visited.set(friendID, distance + 1);
+          console.log("Visited friend", friendID, " : ", " distance: ", distance + 1, " visited: ", visited);
+          // Enqueue friend with updated distance
+          queue.push({ user: friendID, distance: distance + 1 });
+        }
+      }
+    }
+  }
+  // If end user is not reachable from start user
+  return -1;
+}
+
+
+
+// ===================================================================
 // ROUTES 
 // ===================================================================
 
@@ -43,9 +138,19 @@ app.use(session({
 // ---------------------------------------------
 
 // ------- ROUTE --------------------
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+    if (!req.session.user){
+      res.redirect('login');
+    }
+    const user = req.session.user;
+    let sql = "SELECT * FROM posts_table p JOIN friends_table f ON p.pet_owner_id = f.friend_ID  WHERE f.user_ID = ?";
+    let friendPostData = await executeSQL(sql, [user.id]);
+    sql = "SELECT * FROM posts_table WHERE post_visibility = ?";
+    let publicPostData = await executeSQL(sql, "Public");
     res.render('home', {
       title: 'Paws Connect',
+      friendPost: friendPostData,
+      publicPost: publicPostData,
     });
   });
 
@@ -175,18 +280,50 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
 
   const user = req.session.user; // contains session user information
 
+  let userID;
+  let friends;
+  let requested;
+  if(!req.query.user_id){
+    userID = req.session.user.id;
+    friends = false;
+    requested = false;
+  } else {
+    userID = req.query.user_id;
+    let sql1 = "SELECT * FROM friends_table WHERE user_ID = ?";
+    let data = await executeSQL(sql1, [user.id]);
+    data.forEach(element => {
+      if(element.friend_ID == userID){
+        friends = true;
+      } else {
+        friends = false;
+      }
+    });
+
+    let sql2 = "SELECT * FROM messages WHERE sender_id = ? AND receiver_id = ?";
+    let params = ([user.id, userID]);
+    data = await executeSQL(sql2, params);  
+    data.forEach(element => {
+      if(element.is_friend_req == true){
+         requested = true;
+      } else {
+          requested = false;
+       }
+    });
+    
+  }
+
   // SQL query to fetch user information
   let sql = "SELECT * FROM users_table WHERE id = ?";     // select from users_table where id = user
-  let userData = await executeSQL(sql, [user.id]);        // pass user id asynchronously through sql
+  let userData = await executeSQL(sql, userID);        // pass user id asynchronously through sql
 
   // SQL query to fetch posts for the user
   sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?"; // select from posts_table where id = user
-  let postsData = await executeSQL(sql, [user.user_name]);        // pass user id asynchronously through sql
+  let postsData = await executeSQL(sql, [userData[0].user_name]);        // pass user id asynchronously through sql
   let postCount = postsData.length;                               // counts number of posts user created
 
   // SQL query to fetch pets for the user
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";  // select from pets_table where id = user
-  let petData = await executeSQL(sql, [user.id]);       // pass user id asynchronously through sql
+  let petData = await executeSQL(sql, userID);       // pass user id asynchronously through sql
 
   res.render('profiles', {      // renders information for the user session for the profile template
       title: 'Paws Connect',    // title of profiles
@@ -195,6 +332,40 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
       postsData: postsData,     // Pass user's posts from table to profile template
       postCount: postCount,     // Pass post count to profile template
       petData: petData,         // Pass user's pets from table to profile template
+      friends: friends,
+      requested: requested,
+  });
+});
+
+// ---------- Pet Profile ---------
+
+app.get('/petProfile', async (req, res) => {
+  if (!req.session.user) {
+      return res.send('You are not logged in');
+  }
+  const user = req.session.user;
+  let petID = req.query.pet_id;
+  
+  // SQL query to fetch pet information
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
+  let petData = await executeSQL(sql, petID);
+
+  sql = "SELECT * FROM users_table WHERE id = ?"
+  let ownerData = await executeSQL(sql, petData[0].owner_id);
+
+  // SQL query to fetch posts for the pet
+  // sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?";
+  sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
+  let postsData = await executeSQL(sql, petData[0].pet_id);
+  let postCount = postsData.length;
+
+  res.render('petProfile', {
+      title: 'Paws Connect',
+      pet: petData[0],
+      user: user,
+      owner: ownerData[0],
+      postsData: postsData, // Pass the user's posts from table to the template
+      postCount: postCount, // Pass the post count to the template
   });
 });
 
@@ -303,45 +474,26 @@ app.get('/deletePet', async (req, res)=>{
 
 //-------------Pet Owner Create Post Route----------------------
 app.get('/createPost', async (req, res) => {
-  // Check if user is logged in 
-if (!req.session.user){
-  return res.send('Not logged in');
-}
-const owner_id = req.session.user.id;
-let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
-let params = [owner_id];
+  if (!req.session.user) {
+      return res.send('Not logged in');
+  }
+  const owner_id = req.session.user.id;
+  let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+  let params = [owner_id];
 
-//Execute the query
-try{
-  let data = await executeSQL(sql, params);
-  res.render('createPost',{
-    title: 'Paws Connect',
-    pets: data})
-  
-} catch (error) {
-  return res.send ('Error in creating data: ' + error.message);
-}
+  // Define post visibility options here
+  const types = ["Public", "Friends Only"];  // Ensure these are defined
 
-}); 
-// ------------ translate post ------------------
-app.get('/translatePost', async(req, res) => {
-if(!req.session.user){
-  return res.send('You need to log in')
-}
-const user = req.session.user.id;
-let sql = "SELECT post_text FROM post_table WHERE pet_owner_id = ?";
-let params = [user];
-
-try{
-  let data = await executeSQL(sql, params);
-  res.render('profiles',{
-    title: 'Paws Connect',
-    pets: data
-  })
-}catch (error){
-  return res.send('Error in translating post: '+error.message);
-}
-
+  try {
+      let pets = await executeSQL(sql, params);
+      res.render('createPost', {
+          title: 'Paws Connect',
+          pets: pets,
+          types: types  // Pass types to Pug
+      });
+  } catch (error) {
+      return res.send('Error in creating data: ' + error.message);
+  }
 });
 
 
@@ -380,13 +532,25 @@ app.get('/messages', async(req, res) => {
 });
 
 
-// ---------- profile user route.---------
-app.get('/profiles', (req, res) => {
-  let sql = 'SELECT user_name FROM users_table';
-  pool.query(sql, (err, result) => {
-    if (err) throw err;
-    res.render('profiles', { user_name: result });
-  });
+
+//---------Connnections Get route--------------
+app.get('/connections', async (req, res) => {
+  res.render('connections', {title:'Paws Connect'});
+});
+
+  
+//-------- Remove Friend ---------------
+app.get('/removeFriend', async (req, res) => {
+  const currentUser = req.session.user.id;
+  const friendUser = req.query.user_id;
+  let sql = "DELETE FROM friends_table WHERE user_ID = ? AND friend_ID = ?";
+  try{
+    await executeSQL(sql, [currentUser, friendUser]);
+    await executeSQL(sql, [friendUser, currentUser]);
+    res.redirect('profiles?user_id='+friendUser);
+  } catch (error){
+    res.send(error.message);
+  }
 });
 
 // ---------------------------------------------
@@ -806,7 +970,7 @@ app.get('/friendReq', async (req,res) =>{
   let values = [senderId, receiverId, "Friend Request!", true];
   try {
     await executeSQL(sql, values);
-    res.redirect("profiles")
+    res.redirect("profiles?user_id="+receiverId);
   } catch (error) {
     res.send("error" + error.message);
   }
@@ -832,7 +996,7 @@ app.post('/acceptFriend', async (req, res) =>{
     let sql1 = "DELETE FROM messages WHERE message_id = ?";
     await executeSQL(sql1, message);
   //redirect page
-  res.redirect('profiles')
+  res.redirect('messages')
 });
 // -------------post translatePost -----------------------
 app.post('/translatePost', async (req, res) => {
@@ -885,6 +1049,28 @@ main().catch((err) => {
 
 });
 
+app.post('/connections', upload.none(), async (req, res) => {
+  const curUserId = req.session.user.id;
+  const username = req.body.username;
+  
+  if (!username) {
+    res.status(400).json({ error: "Username is required" });
+    return;
+  }
+
+  const userIDQuery = `SELECT id FROM users_table WHERE user_name = ?`;
+  const userIDs = await executeSQL(userIDQuery, [username]);
+
+  if (!userIDs.length) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  const adjacency_list = await generateAdjacencyList();
+  const connectionsRemoved = await bfs(adjacency_list, curUserId, userIDs[0].id);
+  
+  res.json({ connectionsRemoved });
+});
 
 // ===================================================================
 // DATA BASE SET UP
@@ -902,34 +1088,33 @@ function executeSQL(sql, params) {
   });
 }
 
+// ---------------DataBase Connection-------------------------
+function dbConnection(){
+  const pool = mysql.createPool({
+    connectionLimit: 10,
+    host: "hngomrlb3vfq3jcr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+    user: "r8y141rt6xns3ejq",
+    password: "zwv1v6y4c0dffay3",
+    database: "bxr2et3njo3yvg0y"
+  });
 
-  
-  // ---------------DataBase Connection-------------------------
-  function dbConnection(){
-    const pool = mysql.createPool({
-      connectionLimit: 10,
-      host: "hngomrlb3vfq3jcr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
-      user: "r8y141rt6xns3ejq",
-      password: "zwv1v6y4c0dffay3",
-      database: "bxr2et3njo3yvg0y"
-    });
-  
-    // Check for connection errors
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.error(".......Error connecting to the database:", err);
-        return;
-      }
-      console.log("......Connected to the database!");
-      connection.release(); // Release the connection
-    });
-    return pool;
-  }
+  // Check for connection errors
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error(".......Error connecting to the database:", err);
+      return;
+    }
+    console.log("......Connected to the database!");
+    connection.release(); // Release the connection
+  });
+  return pool;
+}
 
 // ===================================================================
 //  APP RUN
 // ===================================================================
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 3000, async () => {
   console.log(`Paws server started on port: ${server.address().port}`);
+  const list = await generateAdjacencyList();
 });

@@ -47,29 +47,51 @@ block content
         if userSearchResults && userSearchResults.length
             each user in userSearchResults
                 .user
-                    p #{user.user_name}
+                    a(href="/profiles?user_id="+user.id) #{user.user_name}
 
         else if userDisplayNameResults && userDisplayNameResults.length
             each user in userDisplayNameResults
                 .user
-                    p #{user.display_name}
+                    a(href="/profiles?user_id="+user.id) #{user.display_name}
 
         else if locationResults && locationResults.length
             each user in locationResults
                 .user
-                    p #{user.user_name}
+                    a(href="/profiles?user_id="+user.id) #{user.user_name}
 
         else if petIdResults && petIdResults.length
             each pet in petIdResults
                 .user
-                    p #{pet.pet_id}
+                    a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_id}
 
         else if petNameResults && petNameResults.length
             each pet in petNameResults
                 .user
-                    p #{pet.pet_name}
+                     a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
 
         else
             .result-count
-                strong No results found for #{searchQuery}.
+                strong No results found for #{searchQuery}
+
+    #posts-home
+    h2 Posts
+        each post in friendPost
+            - const date = new Date(post.post_timeStamp)
+            .postContainer
+                .postData 
+                a(href="/profiles?user_id="+post.pet_owner_id style="font-family: 'Montserrat', sans-serif;") Posted By: @#{post.pet_owner_username}
+                //- a(href="/petProfile?pet_id="+post.pet_id) Tagged Pet: @#{post.pet_id}
+                p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
+                img(src=post.posting_image, width="400", height="400", alt="Post image")
+                p= post.post_text
+        each post in publicPost
+            - const date = new Date(post.post_timeStamp)
+            .postContainer
+                .postData 
+                a(href="/profiles?user_id="+post.pet_owner_id style="font-family: 'Montserrat', sans-serif;") Posted By: @#{post.pet_owner_username}
+                //- a(href="/petProfile?pet_id="+post.pet_id) Tagged Pet: @#{post.pet_id}
+                p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
+                img(src=post.posting_image, width="400", height="400", alt="Post image")
+                p= post.post_text
+
 

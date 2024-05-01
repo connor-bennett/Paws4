@@ -5,90 +5,85 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     meta(http-equiv='X-UA-Compatible', content='ie=edge')
     title= title
-    link(rel='stylesheet', type='text/css', href='/css/style.css')
+    link(rel='stylesheet', type="text/css", href='/css/style.css')
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css')
+    style.
+      #rightSide { 
+        box-shadow: -5px 0 5px -5px #333; /* Shadow on the left */
+        padding-left: 15px; /* Spacing to avoid text clinging to shadow */
+      }
+      #postsContainer {
+        padding-right: 15px; /* Spacing to add some room before the shadow */
+      }
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
   body
-    
-    #headerImage
-      img(src='/images/SampleBanner.jpg' width="1900" height="100" border=" 2px solid black")
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light
+      a.navbar-brand(href='/') Home
+      button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavDropdown', aria-controls='navbarNavDropdown', aria-expanded='false', aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      #navbarNavDropdown.collapse.navbar-collapse
+        ul.navbar-nav
+          li.nav-item
+            a.nav-link(href='/login') Login
+          li.nav-item
+            a.nav-link(href='/createUser') Sign Up
+          li.nav-item
+            a.nav-link(href='/createPet') Create Pet Profile
+          li.nav-item
+            a.nav-link(href='/createPost') Create Post
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', id='navbarDropdownMenuLink', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+              | More
+            .dropdown-menu(aria-labelledby='navbarDropdownMenuLink')
+              a.dropdown-item(href='/profileSearch') Search for Users
+              a.dropdown-item(href='/transferPet') Transfer Pet Account
+              a.dropdown-item(href='/messages') Message Board
+              a.dropdown-item(href='/connections') Connections
 
-    #profileNav
-      <h2 style="text-align: center"> Menu</h2>
-      ul
-        li.nav-item
-          a.navbar-brand(href='/') Home
-        li.nav-item
-          a.nav-link(href='/login') Login
-        li.nav-item
-          a.nav-link(href='/createUser') Sign Up
-        li.nav-item
-          a.nav-link(href='/createPet') Create Pet Profile
-        li.nav-item
-          a.nav-link(href='/createPost') Create Post
-        li.nav-item
-          a.nav-link(href='/profileSearch') Search for users
-        li.nav-item
-          a.nav-item(href='/transferPet') Transfer Pet account
-        li.nav-item  
-          a.nav-item(href='/messages') Message Board
-          
-    //- #profilePics 
-    //-   h2(style="text-align: center;") Pictures 
-    //-   each pet in petData
-    //-     img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+    .container-fluid
+      .row.h-100
+        #postsContainer.col-md-8
+          h2(style="text-decoration: underline;") Posts
+          .row.justify-content-center
+            each post in postsData
+              - const date = new Date(post.post_timeStamp)
+              .col-md-4
+                .card
+                  img.card-img-top(src=post.posting_image, alt="Post image")
+                  .card-body
+                    p.card-text= post.post_text
+                    p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
 
-    //-   each post in postsData
-    //-     img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+        #rightSide.col-md-4
+          h2(style="text-align: center; text-decoration: underline;") UserInfo
+          button.btn.btn-info(data-toggle='collapse', data-target='#userInfoCollapse', aria-expanded='true', aria-controls='userInfoCollapse') Toggle User Info
+          #userInfoCollapse.collapse.show
+            div
+              if (userData.id == user.id)
+                a(href="/updateUser?user_id="+userData.id) 
+                  img(src="/images/edit.png", alt="edit", width="25")
+              else if (friends)
+                a(href='/removeFriend?user_id='+userData.id)
+                  img(src='/images/unfollow.png', alt='Remove Friend', width="50")
+              else if (requested)
+                p REQUESTED!
+              else
+                a(href="/friendReq?user_id="+userData.id) 
+                  img(src="/images/friendReq.png", alt="Friend Request", width="25")
+              div(style="display: flex; justify-content: center; align-items: center;")
+                img(src=userData.profile_img, width="200", height="200", alt="User profile image")
+              br
+              p User Name: #{userData.display_name}
+              p Email: #{userData.email}
+              p Language: #{userData.language}
+              p Number of Posts: #{postCount}
 
-    #posts
-      h2 Posts
-      each post in postsData
-        - const date = new Date(post.post_timeStamp)
-        .postContainer
-          .postData
-            p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
-            img(src=post.posting_image, width="400", height="400", alt="Post image")
-            p= post.post_text
-
-            
-        //- li.nav-item 
-        //-   a.nav-link(href='/transferPet') Transfer Pet
-        //- li.nav-item 
-        //-   a.nav-link(href="/messages") Messages
-        li.nav-item 
-          a.nav-link(href="/translate") translate post
-
-    //- #friends
-    //-   <h2 style="text-align: center"> Friends</h2>
-    //-   <p style="text-align: center"> friends here</p>
-
-    #petprofiles
-      <h2 style="text-align: center"> Pet Profiles</h2>
-      each pet in petData
-        img(src=pet.profile_image, width="100", height="100", alt="Pet image")
-
-        a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
-        br
-
-
-    #profileInfo
-      <h2 style="text-align: center"> UserInfo
-      -if (userData.id == user.id) {
-        a(href="/updateUser?user_id="+userData.id) 
-          img(src="/images/edit.png" alt="edit" width="25")
-      -} else {
-        a(href="/friendReq?user_id="+userData.id) 
-          img(src="/images/friendReq.png" alt="Friend Request" width="25")
-      -}
-      </h2>
-      div(style="display: flex; justify-content: center; align-items: center;")
-
-        img(src=userData.profile_img, width="200", height="200", alt="User profile image")
-      <br>
-      p User Name: #{userData.display_name}
-      p Email: #{userData.email}
-      p Language: #{userData.language}
-
-      P Number of Posts: #{postCount}
+          h2(style="text-align: center; text-decoration: underline;") Pet Profiles
+          each pet in petData
+            img(src=pet.profile_image, width="100", height="100", alt="Pet image")
+            a(href="/petProfile?pet_id="+pet.pet_id) #{pet.pet_name}
+            br
     block content
     
 // Script: function to send post text to translation post 

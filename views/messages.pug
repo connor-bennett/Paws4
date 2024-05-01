@@ -1,58 +1,57 @@
-extends default 
-block content 
+extends default
 
-    .container
-        .row.justify-content-center
-        .col-md-6
-            h1.title.text-center=title 
-            h3.text-center Message Center
+block content
 
-            form(action="/sendmessage", method="post")
-                label(for="recipient") Recipient:
-                input(type="text", id="recipient", name="recipient", required)
+  .container.mt-2
+    .row.justify-content-center
+      .col-md-6
+        h1.title.text-center= title
+        h3.text-center Message Center
 
+        form(action="/sendmessage", method="post")
+          .form-group
+            label(for="recipient") Recipient:
+            input.form-control(type="text", id="recipient", name="recipient", required)
+          .form-group
+            label(for="message") Message:
+            textarea.form-control(id="message", name="message", rows="4", required)
+          button.btn.btn-primary(type="submit", value="Send Message") Send Message
 
-                br
-                label(for="message") Message:
-                textarea(id="message", name="message", rows="4", required)
-                br
-                input(type="submit", value="Send Message")
+      .col-md-6.d-flex.flex-column
+        .scroll-box(style="overflow-y: scroll; flex-grow: 1;")
+          if messages.length > 0
+            ul.list-unstyled
+              each message in messages
+                li.pb-2
+                  if message.is_transfer  
+                    span= `Request to transfer ownership #{message.pet_id} from #{message.sender_name} sender ID: #{message.sender_id}: `
+                    button.btn.btn-success(type="button", class="accept-btn", data-sender-id=message.sender_id, data-pet-id=message.pet_id, data-message-id=message.message_id) Accept
+                    button.btn.btn-danger(type="button", class="deny-btn", data-message-id=message.message_id) Deny
+                  else if message.is_friend_req 
+                    span= `#{message.sender_name} has sent you a Friend Request! `
+                    form(action="/acceptFriend", method="post", class="form-inline")
+                      input(type="hidden", id="sender_id", name="sender_id", value=message.sender_id)
+                      input(type="hidden", id="message_id", name="message_id", value=message.message_id)
+                      button.btn.btn-success(type="submit", name="answer", value="Accept") Accept
+                      button.btn.btn-danger(type="submit", name="answer", value="Deny") Deny
+                  else
+                    | #{message.sender_name}: 
+                    span.message-content= message.message_content
+                    button.btn.btn-info(type="button", class="reply-btn", data-recipient=message.sender_name) Reply
 
-            br
-            br
-            .scroll-box
-                if messages.length > 0
-                    ul
-                        each message in messages
-                            li
-                                if message.is_transfer  
-                                    | Request to transfer ownership #{message.pet_id} from #{message.sender_name} sender ID: #{message.sender_id}: 
-                                    button(type="button" class="accept-btn" data-sender-id=message.sender_id data-pet-id=message.pet_id data-message-id=message.message_id) Accept
-                                    button(type="button" class="deny-btn" data-message-id=message.message_id) Deny
-                                else if message.is_friend_req 
-                                    |  #{message.sender_name} has send you a Friend Request! 
-                                    form(action="/acceptFriend", method="post")
-                                        input(type="text" hidden id="sender_id" name="sender_id" value=message.sender_id)
-                                        input(type="text" hidden id="message_id" name="message_id" value=message.message_id)
-                                        button(type="submit" id="answer" name="answer" value="Accept") Accept 
-                                        button(type="submit" id="answer" name="answer" value="Deny") Deny
-                                else
-                                    | #{message.sender_name}: 
-                                    span.message-content #{message.message_content}
-                                    button(type="button" class="reply-btn" data-recipient=message.sender_name ) Reply
+          else
+            p No messages
 
-                else
-                    p No messages
+  #chat-window.modal.fade
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title Chat with #{currentRecipient}
+          button.close(type="button", data-dismiss="modal") ×
+        .modal-body
+          ul#chat-messages.list-unstyled
+        .modal-footer
+          textarea#reply-message.form-control(rows="3", placeholder="Type your message...")
+          button#send-reply-btn.btn.btn-primary(type="button") Send
 
-    #chat-window.modal
-        .modal-content
-            .modal-header
-                h5.modal-title Chat with #{currentRecipient}
-                button.close(type="button" data-dismiss="modal") ×
-            .modal-body
-                ul#chat-messages
-            .modal-footer
-                textarea#reply-message(rows="3" placeholder="Type your message...")
-                button#send-reply-btn(type="button") Send
-
-    script(src="/JS/reply.js")
+  script(src="/JS/reply.js")

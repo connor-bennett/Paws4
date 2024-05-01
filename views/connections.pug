@@ -1,0 +1,17 @@
+extends default
+
+block content
+  br
+  br
+  h3.text-center Connection Paths
+  h3.text-center See how many connections removed you are from any user!
+
+  form(action="/connections", method="POST", id="connectionsForm").form-group
+    label(for="username2") Username:
+    input.form-control(type="text", id="username2", name="username", required)
+    br
+    button.btn.btn-primary(type="submit", value="Submit") Submit
+
+  p#result 
+
+  script(src="/JS/connection.js")
