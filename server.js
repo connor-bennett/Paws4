@@ -588,7 +588,7 @@ app.post('/login', async(req, res) => {
     req.session.user = user[0];
 
     // Authentication successful, redirect to dashboard or another page
-    res.redirect('/');
+    res.redirect('/profiles');
 });
 
 
