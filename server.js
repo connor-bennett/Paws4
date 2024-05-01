@@ -552,7 +552,67 @@ app.get('/removeFriend', async (req, res) => {
     res.send(error.message);
   }
 });
+// -------------get translatePost -----------------------
+app.get('/translate', async (req, res) => {
+let user = req.session.user;
+let official_language = user.language;
+if(!req.query.post_text){
+  post_text = false;
+}
+let post_text = req.query.post_text;
+console.log("language preffered",official_language)
+console.log("post Text::: ", post_text);
+var languageDict = {"English": "en", "Spanish":"es", "French":"fr", "German":"de"}
+let language_code; 
+for(var key in languageDict){
+  if(key == official_language){
+    language_code = languageDict[key];
+  }
+}
+const TextTranslationClient = require("@azure-rest/ai-translation-text").default
 
+const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
+const endpoint = "https://api.cognitive.microsofttranslator.com/";
+const region = "westus2";
+
+async function main() {
+
+  console.log("== Text translation sample ==");
+
+  const translateCredential = {
+    key: apiKey,
+    region,
+  };
+  let translationClient = new TextTranslationClient(endpoint,translateCredential);
+  let user_planguage = language_code;
+  // const inputText = [{ text: "This is a test." }];
+  let inputText = [{ text: post_text}];
+  let translateResponse = await translationClient.path("/translate").post({
+    body: inputText,
+    queryParameters: {
+      to: user_planguage,
+      from: "en",
+    },
+  });
+  console.log("TRANSLATIONS:::", translateResponse)
+  let translations = translateResponse.body;
+  console.log("TRANSLATIONS: BODY::", translateResponse.body)
+  for (let translation of translations) {
+    console.log(
+      `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
+        
+    );
+  }
+}
+
+main().catch((err) => {
+    console.error("An error occurred:", err);
+    process.exit(1);
+  });
+
+  module.exports = { main };
+
+});
 // ---------------------------------------------
 // END GET ROUTES
 // ---------------------------------------------
@@ -997,56 +1057,6 @@ app.post('/acceptFriend', async (req, res) =>{
     await executeSQL(sql1, message);
   //redirect page
   res.redirect('messages')
-});
-// -------------post translatePost -----------------------
-app.post('/translatePost', async (req, res) => {
-  // logged in?
-  // write script from profiles 
-if(!req.session.user){
-  return res.send('You need to log in first.');
-
-}
-const TextTranslationClient = require("@azure-rest/ai-translation-text").default
-
-const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
-const endpoint = "https://api.cognitive.microsofttranslator.com/";
-const region = "westus2";
-
-async function main() {
-
-  console.log("== Text translation sample ==");
-
-  const translateCredential = {
-    key: apiKey,
-    region,
-  };
-  const translationClient = new TextTranslationClient(endpoint,translateCredential);
-  const user_planguage = req.session.user.language;
-  // const inputText = [{ text: "This is a test." }];
-  const inputText = req.body.post;
-  const translateResponse = await translationClient.path("/translate").post({
-    body: inputText,
-    queryParameters: {
-      to: user_planguage,
-      from: "en",
-    },
-  });
-
-  const translations = translateResponse.body;
-  for (const translation of translations) {
-    console.log(
-      `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
-    );
-  }
-}
-
-main().catch((err) => {
-    console.error("An error occurred:", err);
-    process.exit(1);
-  });
-
-  module.exports = { main };
-
 });
 
 app.post('/connections', upload.none(), async (req, res) => {

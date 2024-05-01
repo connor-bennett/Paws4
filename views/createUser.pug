@@ -35,7 +35,9 @@ block content
                 select(name="preferred_lang", id="preferred_lang", required)
                     each language in langs 
                         option(value=language)= language[0] +language.slice(1)
+                        //- console.log("LANGUAGE::: ", language[0], language.slice(1))
                 br
+                
 
             div.form-group
                 button(type="submit") Create
