@@ -1,46 +1,42 @@
-extends default 
-block content 
-    h1= title
+extends default
+
+block content
+  h1.text-center= title
+  br
+  br
+  h3.text-center Enter Your Post:
+
+  if successful
+    h2.text-center.text-success= successful
+
+  if errorMessage
+    h2.text-center.text-danger= errorMessage
+
+  form(action="/createPost", method="POST")
+    .form-group
+      label(for="posting_image") Image:
+      input.form-control(type="text", id="posting_image", name="posting_image", placeholder="Upload your image!", required)
+      br
+
+    .form-group
+      label(for="post_text") Text:
+      input.form-control(type="text", id="post_text", name="post_text", placeholder="Type your post!", required)
+      br
+
+    if pets
+      .form-group
+        label Select Pet Username:
+        each pet in pets 
+          .checkbox
+            input(type="checkbox", name="pet_petId", id=`pet_${pet.pet_id}`, value=pet.pet_id)
+            label(for=`pet_${pet.pet_id}`)= pet.pet_id
         br
-        br
-        br
-        h3.text-center Enter Your Post: 
 
+    .form-group
+      label(for="post_visibility") Post Visibility:
+      select.form-control(name="post_visibility", id="post_visibility", required)
+        each visibility in types
+          option(value=visibility)= visibility
+      br
 
-        if successful
-            h2.success= successful
-
-        if errorMessage
-            h2.error= errorMessage
-
-        form(action="/createPost", method="POST")
-            div.form-group
-                label(for="posting_image") Image: 
-                input(type="text", id="posting_image", name="posting_image", placeholder="upload your image!", required)
-                br
-
-                br
-
-            div.form-group
-                label(for="post_text") Text:
-                input(type="text", id="post_text", name="post_text", placeholder="Type your post!", required)
-                br
-                br
-            if pets
-                div.form.group
-                    label Select Pet Username:
-                    each pet in pets 
-                        div 
-                            input(type="checkbox",name="pet_petId",id=`pet_${pet.pet_id}`,value=pet.pet_id)
-                            label(for=`pet_${pet.pet_id}`)=pet.pet_id
-                    br
-            div.form-group 
-                - var types =["Public", "Friends Only"]
-                label(for="post_visibility") Post Visibility: 
-                select(name="post_visibility", id="post_visibility", required)
-                    each visibility in types
-                        option(value=visibility)=visibility 
-                br
-                br
-            button(type="submit") Submit Post
-
+    button.btn.btn-primary(type="submit") Submit Post

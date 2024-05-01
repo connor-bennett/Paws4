@@ -475,26 +475,28 @@ app.get('/deletePet', async (req, res)=>{
 
 //-------------Pet Owner Create Post Route----------------------
 app.get('/createPost', async (req, res) => {
-  // Check if user is logged in 
-if (!req.session.user){
-  return res.send('Not logged in');
-}
-const owner_id = req.session.user.id;
-let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
-let params = [owner_id];
+  if (!req.session.user) {
+      return res.send('Not logged in');
+  }
+  const owner_id = req.session.user.id;
+  let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
+  let params = [owner_id];
 
-//Execute the query
-try{
-  let data = await executeSQL(sql, params);
-  res.render('createPost',{
-    title: 'Paws Connect',
-    pets: data})
-  
-} catch (error) {
-  return res.send ('Error in creating data: ' + error.message);
-}
+  // Define post visibility options here
+  const types = ["Public", "Friends Only"];  // Ensure these are defined
 
+  try {
+      let pets = await executeSQL(sql, params);
+      res.render('createPost', {
+          title: 'Paws Connect',
+          pets: pets,
+          types: types  // Pass types to Pug
+      });
+  } catch (error) {
+      return res.send('Error in creating data: ' + error.message);
+  }
 });
+
 
 // ------- transfer Pet Page --------------------
 app.get('/transferPet', async(req, res) => {

@@ -1,30 +1,33 @@
 doctype html
 html
-    head
-        meta(charset='UTF-8')
-        meta(name='viewport' content='width=device-width, initial-scale=1.0')
-        meta(http-equiv='X-UA-Compatible' content='ie=edge')
-        title= title
-        link(rel='stylesheet' type="text/css" href='/css/style.css')
-        link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css')
-        link(rel='stylesheet', type="text/css", href='/css/style.css')
-        script(src="https://code.jquery.com/jquery-3.6.0.min.js")
-        script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    meta(http-equiv='X-UA-Compatible' content='ie=edge')
+    title= title
+    link(rel='stylesheet', type="text/css", href='/css/style.css')
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css')
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
 
-
-    body
-        nav.navbar
+  body
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light
+      a.navbar-brand(href='/') Home
+      button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavDropdown', aria-controls='navbarNavDropdown', aria-expanded='false', aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      #navbarNavDropdown.collapse.navbar-collapse
         ul.navbar-nav
-            a.navbar-brand(href='/') Home
-            li.nav-item
-                a.nav-link(href='/login') Login
-            li.nav-item
-                a.nav-link(href='/createUser') Sign Up
-            li.nav-item
-                a.nav-link(href='/createPet') Create Pet Profile
-            li.nav-item
-                a.nav-link(href='/createPost') Create Post
-            li.nav-item 
-                a.nav-link(href='/updatePet') Update Pet
+          li.nav-item
+            a.nav-link(href='/login') Login
+          li.nav-item
+            a.nav-link(href='/createUser') Sign Up
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', id='navbarDropdownLink', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+              | Pet Profiles
+            .dropdown-menu(aria-labelledby='navbarDropdownLink')
+              a.dropdown-item(href='/createPet') Create Pet Profile
+              a.dropdown-item(href='/updatePet') Update Pet
+          li.nav-item
+            a.nav-link(href='/createPost') Create Post
 
     block content
