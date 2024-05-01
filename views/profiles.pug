@@ -78,7 +78,7 @@ html
           a(href='/removeFriend?user_id='+userData.id)
             img(src='/images/unfollow.png' alt='Remove Friend' width="50")
       -} else if (requested) {
-          <p>REQUESTED!</p>
+        img(src="/images/requested.png" alt="Request Pending" width="50")
       -} else {
         a(href="/friendReq?user_id="+userData.id) 
           img(src="/images/friendReq.png" alt="Friend Request" width="25")
