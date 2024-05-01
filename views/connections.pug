@@ -1,19 +1,18 @@
-extends default 
-block content 
-    h1= title
-        br
-        br
-        
-        h3.text-center Connection Paths
-        h3 See how many connections removed you are from any user!
+extends default
 
+block content
+  h1= title
+  br
+  br
+  h3.text-center Connection Paths
+  h3 See how many connections removed you are from any user!
 
-        form(action="/connections", method="POST", id="connectionsForm").login-form
-            label(for="username2") Username 2:
-            input(type="text", id="username2", name="username2", required)
-            br
-            input(type="submit", value="Submit").submit-login
+  form(action="/connections", method="POST", id="connectionsForm").connectionsForm-form
+    label(for="username2") Username :
+    input(type="text", id="username2", name="username", required)
+    br
+    input(type="submit", value="Submit").submit-login
 
-        p#result
+  p#result 
 
-        script(src="/JS/connection.js")
+  script(src="/JS/connection.js")

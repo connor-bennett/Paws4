@@ -9,6 +9,8 @@ const pool = dbConnection();
 const bodyParser = require('body-parser');
 const axios = require('axios');
 app.use(express.static('public'));
+const multer = require('multer');
+const upload = multer(); // setups multer with default settings
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -43,7 +45,7 @@ app.use(session({
 // create adjacency list out of friends data
 //------------------------------------------------------
 
-async function generateAdjacecnyList(){
+async function generateAdjacencyList(){
   const adjacency_list = new Map();
 
 
@@ -125,6 +127,7 @@ async function bfs(adjacency_list, startUserID, endUserID) {
   // If end user is not reachable from start user
   return -1;
 }
+
 
 
 // ===================================================================
@@ -993,59 +996,28 @@ app.post('/acceptFriend', async (req, res) =>{
   res.redirect('messages')
 });
 
-//----------------------connections POST route ------------------------
-// app.post('/connections', async(req, res) => {
-//   const curUserId = req.session.user.id;
-//   console.log("session user id: ", curUserId);
-//   const username2 = req.body.username2;
-//   // Check if both usernames are provided
-//   if (!username2) {
-//     res.status(400).send("Username is required");
-//     return;
-// }
-
-//   // Retrieve user IDs based on usernames from the database
-//   const userIDQuery = `SELECT id FROM users_table WHERE user_name = ?`;
-//   const userIDs = await executeSQL(userIDQuery, [username2]);
-
-// // Generate adjacency list
-// const adjacency_list = await generateAdjacecnyList();
-// console.log("..adjacecny list created ....")
-
-// // Perform BFS to find the number of connections removed between the users
-// const connectionsRemoved = await bfs(adjacency_list, curUserId, userIDs[0].id);
-// console.log("connections: ", connectionsRemoved);
-// res.send({connectionsRemoved});
-// });
-app.post('/connections', async(req, res) => {
+app.post('/connections', upload.none(), async (req, res) => {
   const curUserId = req.session.user.id;
-  const username2 = req.body.username2;
+  const username = req.body.username;
   
-  if (!username2) {
-      res.status(400).send("Username is required");
-      return;
+  if (!username) {
+    res.status(400).json({ error: "Username is required" });
+    return;
   }
 
-  // Retrieve user IDs based on usernames from the database
   const userIDQuery = `SELECT id FROM users_table WHERE user_name = ?`;
-  const userIDs = await executeSQL(userIDQuery, [username2]);
+  const userIDs = await executeSQL(userIDQuery, [username]);
 
   if (!userIDs.length) {
-      res.status(404).send("User not found");
-      return;
+    res.status(404).json({ error: "User not found" });
+    return;
   }
 
-  // Generate adjacency list
-  const adjacency_list = await generateAdjacecnyList();
-
-  // Perform BFS to find the number of connections removed between the users
+  const adjacency_list = await generateAdjacencyList();
   const connectionsRemoved = await bfs(adjacency_list, curUserId, userIDs[0].id);
   
-  res.send({connectionsRemoved});
+  res.json({ connectionsRemoved });
 });
-
-
-
 
 // ===================================================================
 // DATA BASE SET UP
@@ -1091,8 +1063,5 @@ function dbConnection(){
 
 const server = app.listen(process.env.PORT || 3000, async () => {
   console.log(`Paws server started on port: ${server.address().port}`);
-  const list = await generateAdjacecnyList();
-  console.log("BFS: Success");
-  console.log(list);
-
+  const list = await generateAdjacencyList();
 });
