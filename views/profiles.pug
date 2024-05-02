@@ -57,9 +57,6 @@ html
 
         #rightSide.col-md-4
           h2(style="text-align: center; text-decoration: underline;") UserInfo
-          button.btn.btn-info(data-toggle='collapse', data-target='#userInfoCollapse', aria-expanded='true', aria-controls='userInfoCollapse') Toggle User Info
-          #userInfoCollapse.collapse.show
-            div
               if (userData.id == user.id)
                 a(href="/updateUser?user_id="+userData.id) 
                   img(src="/images/edit.png", alt="edit", width="25")
@@ -67,10 +64,12 @@ html
                 a(href='/removeFriend?user_id='+userData.id)
                   img(src='/images/unfollow.png', alt='Remove Friend', width="50")
               else if (requested)
-                p REQUESTED!
+                img(src='/images/requested.png', alt='Friend Requested', width="50")
               else
                 a(href="/friendReq?user_id="+userData.id) 
                   img(src="/images/friendReq.png", alt="Friend Request", width="25")
+          button.btn.btn-info(data-toggle='collapse', data-target='#userInfoCollapse', aria-expanded='true', aria-controls='userInfoCollapse') Toggle User Info
+          #userInfoCollapse.collapse.show
               div(style="display: flex; justify-content: center; align-items: center;")
                 img(src=userData.profile_img, width="200", height="200", alt="User profile image")
               br

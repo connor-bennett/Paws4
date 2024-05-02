@@ -13,35 +13,33 @@ block content
         form(action="/createPet", method="POST")
             div.form-group
                 label(for="pet_id") PetID: 
-                input(type="text", id="pet_id", name="pet_id", placeholder="Enter your Pet ID", required)
+                input.form-control(type="text", id="pet_id", name="pet_id", placeholder="Enter your Pet ID", required)
                 br
             div.form-group
                 label(for="pet_name") Pet Name:
-                input(type="text", id="pet_name", name="pet_name", placeholder="Enter Pet's Name", required)
+                input.form-control(type="text", id="pet_name", name="pet_name", placeholder="Enter Pet's Name", required)
                 br
             div.form-group 
                 - var types = ["Dog", "Cat", "Lizard", "Fish", "Other"]
                 label(for="pet_type") Pet Type:
-                select(name="pet_type", id="pet_type", required) 
+                select.form-control(name="pet_type", id="pet_type", required) 
                     each petType in types
                         option(value=petType)= petType[0] + petType.slice(1) 
                 br
             div.form-group 
                 label(for="pet_breed") Pet Breed: 
-                input(type="text", id="pet_breed", name='pet_breed', placeholder="Enter Pet's Breed")
+                input.form-control(type="text", id="pet_breed", name='pet_breed', placeholder="Enter Pet's Breed")
                 br
             div.form-group 
-
                 label(for="pet_image") Profile Picture: 
-                input(type="text", id="pet_image", name="pet_image", placeholder="Enter your pets profile picture!")
+                input.form-control(type="text", id="pet_image", name="pet_image", placeholder="Enter your pets profile picture!")
                 br
             div.form-group 
-            
                 label(for="pet_bio") Pet Bio: 
-                input(type="textbox", name="pet_bio", id='pet_bio', placeholder="Tell people more about your pet!")
+                input.form-control(type="textbox", name="pet_bio", id='pet_bio', placeholder="Tell people more about your pet!")
                 br
             div.form-group
-                button(type="submit") Create Pet Profile
+                button.btn.btn-primary(type="submit") Create Pet Profile
 
     
 
