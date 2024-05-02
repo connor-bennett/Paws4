@@ -315,6 +315,7 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
   // SQL query to fetch user information
   let sql = "SELECT * FROM users_table WHERE id = ?";     // select from users_table where id = user
   let userData = await executeSQL(sql, userID);        // pass user id asynchronously through sql
+  
 
   // SQL query to fetch posts for the user
   sql = "SELECT * FROM posts_table WHERE pet_owner_username = ?"; // select from posts_table where id = user
@@ -325,6 +326,8 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";  // select from pets_table where id = user
   let petData = await executeSQL(sql, userID);       // pass user id asynchronously through sql
 
+  const translation_out = req.query.translation_out;
+
   res.render('profiles', {      // renders information for the user session for the profile template
       title: 'Paws Connect',    // title of profiles
       user: user,               // pass user id for the session to the template
@@ -334,6 +337,7 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
       petData: petData,         // Pass user's pets from table to profile template
       friends: friends,
       requested: requested,
+      translation_out: translation_out,
   });
 });
 
@@ -560,8 +564,9 @@ if(!req.query.post_text){
   post_text = false;
 }
 let post_text = req.query.post_text;
-console.log("language preffered",official_language)
-console.log("post Text::: ", post_text);
+let userId = user.id;
+let postId = req.query.post_id;
+// using 4 languages
 var languageDict = {"English": "en", "Spanish":"es", "French":"fr", "German":"de"}
 let language_code; 
 for(var key in languageDict){
@@ -575,9 +580,7 @@ const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
 const endpoint = "https://api.cognitive.microsofttranslator.com/";
 const region = "westus2";
 
-async function main() {
-
-  console.log("== Text translation sample ==");
+// async function main() {
 
   const translateCredential = {
     key: apiKey,
@@ -591,26 +594,30 @@ async function main() {
     body: inputText,
     queryParameters: {
       to: user_planguage,
-      from: "en",
+      // from: "en",
     },
   });
-  console.log("TRANSLATIONS:::", translateResponse)
   let translations = translateResponse.body;
-  console.log("TRANSLATIONS: BODY::", translateResponse.body)
+  // console.log("TRANSLATIONS: BODY::", translateResponse.body)
+  let translation_out;
   for (let translation of translations) {
-    console.log(
-      `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
-        
-    );
+    translation_out = translation?.translations[0]?.text;
+    // testing trnslation
+    // console.log(
+    //   `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
+
+    // );
   }
+  // testing out an array to track post and ID 
+  // var trans = [{ translation_out: translation_out, user_id:userId }];
+
+  try {
+    // console.log("TRANSLATIONS:::", translation_out)
+    res.redirect('/profiles?userId=' + userId + 
+    '&translation_out=' + translation_out);
+} catch (error) {
+    return res.send('Error in creating data: ' + error.message);
 }
-
-main().catch((err) => {
-    console.error("An error occurred:", err);
-    process.exit(1);
-  });
-
-  module.exports = { main };
 
 });
 // ---------------------------------------------

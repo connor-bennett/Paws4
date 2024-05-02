@@ -54,7 +54,11 @@ html
                   .card-body
                     p.card-text= post.post_text
                     p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
-                    a(href="/translate?post_text="+post.post_text) # Translate post
+                    //- a(href="/translate?post_text="+post.post_text) Translate post
+                    a(href=`/translate?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
+                    if translation_out
+                      p Translated to: #{translation_out}
+                    
 
         #rightSide.col-md-4
           h2(style="text-align: center; text-decoration: underline;") UserInfo
@@ -87,4 +91,3 @@ html
             br
     block content
     
-// Script: function to send post text to translation post 
