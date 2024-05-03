@@ -144,8 +144,8 @@ app.get('/', async (req, res) => {
       res.redirect('login');
     }
     const user = req.session.user;
-    let sql = "SELECT * FROM posts_table p JOIN friends_table f ON p.pet_owner_id = f.friend_ID  WHERE f.user_ID = ?";
-    let friendPostData = await executeSQL(sql, [user.id]);
+    let sql = "SELECT * FROM posts_table p JOIN friends_table f ON p.pet_owner_id = f.friend_ID  WHERE f.user_ID = ? AND p.post_visibility = ?";
+    let friendPostData = await executeSQL(sql, [user.id, "Friends Only"]);
     sql = "SELECT * FROM posts_table WHERE post_visibility = ?";
     let publicPostData = await executeSQL(sql, "Public");
     res.render('home', {

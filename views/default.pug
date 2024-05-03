@@ -11,7 +11,7 @@ html
     script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
 
   body
-    nav.navbar.navbar-expand-lg.navbar-light.bg-light
+   nav.navbar.navbar-expand-lg.navbar-light.bg-light
       a.navbar-brand(href='/') Home
       button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNavDropdown', aria-controls='navbarNavDropdown', aria-expanded='false', aria-label='Toggle navigation')
         span.navbar-toggler-icon
@@ -21,13 +21,19 @@ html
             a.nav-link(href='/login') Login
           li.nav-item
             a.nav-link(href='/createUser') Sign Up
-          li.nav-item.dropdown
-            a.nav-link.dropdown-toggle(href='#', id='navbarDropdownLink', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
-              | Pet Profiles
-            .dropdown-menu(aria-labelledby='navbarDropdownLink')
-              a.dropdown-item(href='/createPet') Create Pet Profile
-              a.dropdown-item(href='/updatePet') Update Pet
+          li.nav-item
+            a.nav-link(href='/profiles') My Account
+          li.nav-item
+            a.nav-link(href='/createPet') Create Pet Profile
           li.nav-item
             a.nav-link(href='/createPost') Create Post
-
-    block content
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', id='navbarDropdownMenuLink', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+              | More
+            .dropdown-menu(aria-labelledby='navbarDropdownMenuLink')
+              a.dropdown-item(href='/profileSearch') Search for Users
+              a.dropdown-item(href='/transferPet') Transfer Pet Account
+              a.dropdown-item(href='/messages') Message Board
+              a.dropdown-item(href='/connections') Connections
+               
+block content
