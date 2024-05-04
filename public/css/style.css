@@ -392,3 +392,7 @@ html {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
+.notice {
+  font-weight: bold;
+  color: red;
+}

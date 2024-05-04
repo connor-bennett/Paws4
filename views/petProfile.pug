@@ -1,63 +1,26 @@
-doctype html
-html
-  head
-    meta(charset='UTF-8')
-    meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    meta(http-equiv='X-UA-Compatible', content='ie=edge')
-    title= title
-    link(rel='stylesheet', type='text/css', href='/css/style.css')
-  body
-    
-    #headerImage
-      img(src='/images/SampleBanner.jpg' width="1900" height="100" border=" 2px solid black")
+extends default 
 
-    #profileNav
-      <h2 style="text-align: center"> Menu</h2>
-      ul
-        li.nav-item
-          a.navbar-brand(href='/') Home
-        li.nav-item
-          a.nav-link(href='/login') Login
-        li.nav-item
-          a.nav-link(href='/createUser') Sign Up
-        li.nav-item
-          a.nav-link(href='/createPet') Create Pet Profile
-        li.nav-item
-          a.nav-link(href='/createPost') Create Post
-        li.nav-item
-          a.nav-link(href='/profileSearch') Search for users
-        li.nav-item
-          a.nav-item(href='/transferPet') Transfer Pet account
-        li.nav-item  
-          a.nav-item(href='/messages') Message Board
-          
-    //- #profilePics 
-    //-   h2(style="text-align: center;") Pictures 
-      
-    //-   img(src=pet.profile_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
+block content
 
-    //-   each post in postsData
-    //-     img(src=post.posting_image, width="100", height="100", alt="Pet image", style="margin: 10px;")
-
-    #posts
-      h2 Posts
-      each post in postsData
-        - const date = new Date(post.post_timeStamp)
-        .postContainer
-          .postData
-            p(style="font-family: 'Montserrat', sans-serif; color: #c71585;") Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
-            img(src=post.posting_image, width="400", height="400", alt="Post image")
-            p= post.post_text
+    .container-fluid
+      .row.h-100
+        #postsContainer.col-md-12
+          h2(style="text-decoration: underline;") Pet Posts   
+          .row.justify-content-center 
+            each post in postsData
+              - const date = new Date(post.post_timeStamp)
+              .col-md-3
+                .card
+                  img.card-img-top(src=post.posting_image, alt="Post image")
+                  .card-body
+                    a.card-text(href="/profile?user-id="+post.pet_owner_id) @#{post.pet_owner_username}
+                    p.card-text= post.post_text
+                    p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
+                    a.blue-link(href=`/translatePet?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}&pet_id=${pet.pet_id}`) Translate post
+                    if translation_out && postId
+                      if postId == post.post_id
+                        p.notice Translated to: #{translation_out}
             
-        li.nav-item 
-          a.nav-link(href='/transferPet') Transfer Pet
-        li.nav-item 
-          a.nav-link(href="/messages") Messages
-
-    //- #friends
-    //-   <h2 style="text-align: center"> Bio:  </h2>
-    //-   <p style="text-align: center"> #{pet.pet_bio} </p>
-
 
     #profileInfo
       <h2 style="text-align: center"> PetInfo

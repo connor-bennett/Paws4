@@ -88,6 +88,10 @@ block content
                     a.card-text(href="/profile?user-id="+post.pet_owner_id) @#{post.pet_owner_username}
                     p.card-text= post.post_text
                     p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
+                    a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
+                    if translation_out && postId
+                      if postId == post.post_id
+                        p.notice Translated to: #{translation_out}
             each post in publicPost
               - const date = new Date(post.post_timeStamp)
               .col-md-3
@@ -97,6 +101,10 @@ block content
                     a.card-text(href="/profile?user-id="+post.pet_owner_id) @#{post.pet_owner_username}
                     p.card-text= post.post_text
                     p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
+                    a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
+                    if translation_out && postId
+                      if postId == post.post_id
+                        p.notice Translated to: #{translation_out}
 
 
 

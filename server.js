@@ -147,10 +147,14 @@ app.get('/', async (req, res) => {
     let friendPostData = await executeSQL(sql, [user.id, "Friends Only"]);
     sql = "SELECT * FROM posts_table WHERE post_visibility = ?";
     let publicPostData = await executeSQL(sql, "Public");
+    const translation_out = req.query.translation_out;
+    const postId = req.query.postId;
     res.render('home', {
       title: 'Paws Connect',
       friendPost: friendPostData,
       publicPost: publicPostData,
+      translation_out: translation_out,
+      postId: postId,
     });
   });
 
@@ -327,7 +331,7 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
   let petData = await executeSQL(sql, userID);       // pass user id asynchronously through sql
 
   const translation_out = req.query.translation_out;
-
+  const postId = req.query.postId;
   res.render('profiles', {      // renders information for the user session for the profile template
       title: 'Paws Connect',    // title of profiles
       user: user,               // pass user id for the session to the template
@@ -338,6 +342,7 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
       friends: friends,
       requested: requested,
       translation_out: translation_out,
+      postId:postId,
   });
 });
 
@@ -362,7 +367,8 @@ app.get('/petProfile', async (req, res) => {
   sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
   let postsData = await executeSQL(sql, petData[0].pet_id);
   let postCount = postsData.length;
-
+  const translation_out = req.query.translation_out;
+  const postId = req.query.postId;
   res.render('petProfile', {
       title: 'Paws Connect',
       pet: petData[0],
@@ -370,6 +376,8 @@ app.get('/petProfile', async (req, res) => {
       owner: ownerData[0],
       postsData: postsData, // Pass the user's posts from table to the template
       postCount: postCount, // Pass the post count to the template
+      translation_out: translation_out,
+      postId:postId,
   });
 });
 
@@ -602,24 +610,127 @@ const region = "westus2";
   let translation_out;
   for (let translation of translations) {
     translation_out = translation?.translations[0]?.text;
-    // testing trnslation
-    // console.log(
-    //   `Text was translated to: '${translation?.translations[0]?.to}' and the result is: '${translation?.translations[0]?.text}'.`
-
-    // );
   }
-  // testing out an array to track post and ID 
-  // var trans = [{ translation_out: translation_out, user_id:userId }];
-
   try {
-    // console.log("TRANSLATIONS:::", translation_out)
     res.redirect('/profiles?userId=' + userId + 
-    '&translation_out=' + translation_out);
+    '&translation_out=' + translation_out + '&postId='+postId);
 } catch (error) {
     return res.send('Error in creating data: ' + error.message);
 }
 
 });
+// translate home page posts
+// -------------get translateHome -----------------------
+app.get('/translateHome', async (req, res) => {
+  let user = req.session.user;
+  let official_language = user.language;
+  if(!req.query.post_text){
+    post_text = false;
+  }
+  let post_text = req.query.post_text;
+  let userId = user.id;
+  let postId = req.query.post_id;
+  // using 4 languages
+  var languageDict = {"English": "en", "Spanish":"es", "French":"fr", "German":"de"}
+  let language_code; 
+  for(var key in languageDict){
+    if(key == official_language){
+      language_code = languageDict[key];
+    }
+  }
+  const TextTranslationClient = require("@azure-rest/ai-translation-text").default
+  
+  const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
+  const endpoint = "https://api.cognitive.microsofttranslator.com/";
+  const region = "westus2";
+  
+  // async function main() {
+  
+    const translateCredential = {
+      key: apiKey,
+      region,
+    };
+    let translationClient = new TextTranslationClient(endpoint,translateCredential);
+    let user_planguage = language_code;
+    // const inputText = [{ text: "This is a test." }];
+    let inputText = [{ text: post_text}];
+    let translateResponse = await translationClient.path("/translate").post({
+      body: inputText,
+      queryParameters: {
+        to: user_planguage,
+        // from: "en",
+      },
+    });
+    let translations = translateResponse.body;
+    // console.log("TRANSLATIONS: BODY::", translateResponse.body)
+    let translation_out;
+    for (let translation of translations) {
+      translation_out = translation?.translations[0]?.text;
+    }
+    try {
+      res.redirect('/?userId=' + userId + 
+      '&translation_out=' + translation_out +'&postId='+postId);
+  } catch (error) {
+      return res.send('Error in creating data: ' + error.message);
+  }
+  
+  });
+// -------------get translate Pet Profiles -----------------------
+app.get('/translatePet', async (req, res) => {
+  let user = req.session.user;
+  let official_language = user.language;
+  if(!req.query.post_text){
+    post_text = false;
+  }
+  let post_text = req.query.post_text;
+  let userId = user.id;
+  let pet_id = req.query.pet_id;
+  let postId = req.query.post_id;
+  // using 4 languages
+  var languageDict = {"English": "en", "Spanish":"es", "French":"fr", "German":"de"}
+  let language_code; 
+  for(var key in languageDict){
+    if(key == official_language){
+      language_code = languageDict[key];
+    }
+  }
+  const TextTranslationClient = require("@azure-rest/ai-translation-text").default
+  
+  const apiKey = "d5edd0531a6c40288ccbed0b7867920e";
+  const endpoint = "https://api.cognitive.microsofttranslator.com/";
+  const region = "westus2";
+  
+  // async function main() {
+  
+    const translateCredential = {
+      key: apiKey,
+      region,
+    };
+    let translationClient = new TextTranslationClient(endpoint,translateCredential);
+    let user_planguage = language_code;
+    // const inputText = [{ text: "This is a test." }];
+    let inputText = [{ text: post_text}];
+    let translateResponse = await translationClient.path("/translate").post({
+      body: inputText,
+      queryParameters: {
+        to: user_planguage,
+        // from: "en",
+      },
+    });
+    let translations = translateResponse.body;
+    let translation_out;
+    for (let translation of translations) {
+      translation_out = translation?.translations[0]?.text;
+    }
+   
+    try {
+      res.redirect('/petProfile?pet_id=' + pet_id + '&userId=' + userId +
+      '&translation_out=' + translation_out +'&postId='+postId);
+  } catch (error) {
+      return res.send('Error in creating data: ' + error.message);
+  }
+  
+  });
 // ---------------------------------------------
 // END GET ROUTES
 // ---------------------------------------------
