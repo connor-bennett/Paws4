@@ -147,8 +147,12 @@ app.get('/', async (req, res) => {
     let friendPostData = await executeSQL(sql, [user.id, "Friends Only"]);
     sql = "SELECT * FROM posts_table WHERE post_visibility = ?";
     let publicPostData = await executeSQL(sql, "Public");
-    const translation_out = req.query.translation_out;
-    const postId = req.query.postId;
+    let translation_out;
+    let postId;
+    if(req.query.translation_out && req.query.postId){
+      translation_out = req.query.translation_out;
+      postId = req.query.postId;
+    }
     res.render('home', {
       title: 'Paws Connect',
       friendPost: friendPostData,
@@ -330,8 +334,13 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
   sql = "SELECT * FROM pets_table WHERE owner_id = ?";  // select from pets_table where id = user
   let petData = await executeSQL(sql, userID);       // pass user id asynchronously through sql
 
-  const translation_out = req.query.translation_out;
-  const postId = req.query.postId;
+  let translation_out;
+  let postId;
+  if(req.query.translation_out && req.query.postId){
+    translation_out = req.query.translation_out;
+    postId = req.query.postId;
+  }
+
   res.render('profiles', {      // renders information for the user session for the profile template
       title: 'Paws Connect',    // title of profiles
       user: user,               // pass user id for the session to the template
@@ -367,8 +376,12 @@ app.get('/petProfile', async (req, res) => {
   sql = "SELECT * FROM posts_table p JOIN petsTaggedPosts_table tagged ON p.post_id = tagged.post_id WHERE tagged.pet_id = ?";
   let postsData = await executeSQL(sql, petData[0].pet_id);
   let postCount = postsData.length;
-  const translation_out = req.query.translation_out;
-  const postId = req.query.postId;
+  let translation_out;
+  let postId;
+  if(req.query.translation_out && req.query.postId){
+    translation_out = req.query.translation_out;
+    postId = req.query.postId;
+  }
   res.render('petProfile', {
       title: 'Paws Connect',
       pet: petData[0],
