@@ -85,7 +85,7 @@ block content
                 .card
                   img.card-img-top(src=post.posting_image, alt="Post image")
                   .card-body
-                    a.card-text(href="/profile?user-id="+post.pet_owner_id) @#{post.pet_owner_username}
+                    a.card-text(href="/profiles?user_id="+post.pet_owner_id) @#{post.pet_owner_username} 
                     p.card-text= post.post_text
                     p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
                     a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
@@ -98,7 +98,7 @@ block content
                 .card
                   img.card-img-top(src=post.posting_image, alt="Post image")
                   .card-body
-                    a.card-text(href="/profile?user-id="+post.pet_owner_id) @#{post.pet_owner_username}
+                    a.card-text(href="/profiles?user_id="+post.pet_owner_id) @#{post.pet_owner_username}
                     p.card-text= post.post_text
                     p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
                     a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post

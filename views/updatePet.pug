@@ -4,48 +4,49 @@ block content
         br
         br
         br
-        h3.text-center Update Pet Information!
-         - var petID = pet.pet_id;
-            ul 
-                li
-                    img(src=pet.profile_image, alt="profile picture", width="250", height="250")
-                li Pet ID: #{pet.pet_id}
-                li Pet Name: #{pet.pet_name} 
-        br
-        br
-        hr
-        h3.text-center
-            a(href="/removePet?pet_id="+petID) Delete Pet Profile 
 
-            a(href="/transferPet") Transfer Pet Profile
+    .container-fluid
+        .row.h-100
+            #rightSide.col-md-5
+                .row.justify-content-center
+                    h3 Update Pet Information!
+                        - var petID = pet.pet_id;
+                        .card
+                            img.card-image-top(src=pet.profile_image, alt="profile picture", width="250", height="250")
+                            p.card-text Pet ID: #{pet.pet_id}
+                            p.card-text Pet Name: #{pet.pet_name} 
+                            br
+                            a.btn.btn-primary(href="/removePet?pet_id="+petID) Delete Pet Profile 
+                            a.btn.btn-primary(href="/transferPet") Transfer Pet Profile
 
-        br
-        hr
-        h3.text-center Change Pet Information Below:
+                    br
+                    hr
+            
+            
+       
+            h3.text-center Change Pet Information Below:
+                form(action='/updatePet', method="POST")
+                    input(type="text", id="pet_id", name="pet_id", value=pet.pet_id, hidden)
+                    div.form-group 
+                        label(for="new_pet_name") Edit Pet Name: 
+                        input.form-control(type="text", id="new_pet_name", name="new_pet_name", value=pet.pet_name)
+                        br
+                    div.form-group 
+                        -var types = ["Dog", "Cat", "Lizard", "Fish", "Other"]
+                        label(for="new_pet_type") Edit Pet Type: 
+                        select.form-control(name="new_pet_type", id="new_pet_type", required)
+                            option(value=pet.pet_type) #{pet.pet_type}
+                                each petType in types 
+                                    option(value=petType)= petType[0] + petType.slice(1)
 
-        form(action='/updatePet', method="POST")
-
-            input(type="text", id="pet_id", name="pet_id", value=pet.pet_id, hidden)
-            div.form-group 
-                label(for="new_pet_name") Edit Pet Name: 
-                input(type="text", id="new_pet_name", name="new_pet_name", value=pet.pet_name)
-
-                br
-            div.form-group 
-                -var types = ["Dog", "Cat", "Lizard", "Fish", "Other"]
-                label(for="new_pet_type") Edit Pet Type: 
-                select(name="new_pet_type", id="new_pet_type", required)
-                    option(value=pet.pet_type) #{pet.pet_type}
-                    each petType in types 
-                        option(value=petType)= petType[0] + petType.slice(1)
-            div.form-group 
-                label(for='new_pet_breed') Edit Pet Breed: 
-                input(type="text", name="new_pet_breed", id="new_pet_breed", value=pet.pet_breed)
-            div.form-group
-                label(for='new_profile_image') Edit Profile Picture
-                input(type="text", id="new_profile_image", name="new_profile_image", value=pet.profile_image)
-            div.form-group 
-                label(for="new_pet_bio") Edit Pet Bio: 
-                input(type="textbox" , name="new_pet_bio", id="new_pet_bio", value=pet.pet_bio)
-                br
-            button(type="submit") Update
+                    div.form-group 
+                        label(for='new_pet_breed') Edit Pet Breed: 
+                        input.form-control(type="text", name="new_pet_breed", id="new_pet_breed", value=pet.pet_breed)
+                    div.form-group
+                        label(for='new_profile_image') Edit Profile Picture
+                        input.form-control(type="text", id="new_profile_image", name="new_profile_image", value=pet.profile_image)
+                    div.form-group 
+                        label(for="new_pet_bio") Edit Pet Bio: 
+                        input.form-control(type="textbox" , name="new_pet_bio", id="new_pet_bio", value=pet.pet_bio)
+                        br
+                    button.btn.btn-primary(type="submit") Update
