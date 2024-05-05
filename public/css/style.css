@@ -34,12 +34,12 @@ html {
     max-width: 600px;
     text-align: center;
   }
-  
+   
   .home-search img {
-    margin-bottom: 20px;
-  }
+    margin-bottom: 200px;
+  } 
   
-  .home-input {
+   .home-input {
     outline: none;
     box-shadow: none;
     background-color: transparent;
@@ -47,7 +47,7 @@ html {
     padding: 10px 20px;
     border: 1px solid var(--dark-grey);
     width: 100%;
-  }
+  } 
 /* --------------------------------------------------------------- */
 /* LOGIN STYLES */
 /* --------------------------------------------------------------- */
@@ -378,7 +378,7 @@ html {
   }
   .home-content {
     margin-top: 50px;
-}
+} */
 
 .homeTitle {
     font-size: 2.5rem;
@@ -388,7 +388,11 @@ html {
     border-radius: 10px;
 }
 
-.homeButton {
+ .homeButton {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+}
+.notice {
+  font-weight: bold;
+  color: red;
 }
