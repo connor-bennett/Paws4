@@ -367,6 +367,7 @@ app.get('/petProfile', async (req, res) => {
   // SQL query to fetch pet information
   let sql = "SELECT * FROM pets_table WHERE pet_id = ?";
   let petData = await executeSQL(sql, petID);
+  console.log(petData);
 
   sql = "SELECT * FROM users_table WHERE id = ?"
   let ownerData = await executeSQL(sql, petData[0].owner_id);
@@ -440,13 +441,13 @@ app.get("/updatePet", async (req, res) =>{
   if (!req.session.user){
     return res.send('You are not logged in!');
   }
-
+  const petID = req.query.pet_id;
   //hard coding to get first pet from ownsers list for now
   
-  let sql = "SELECT * FROM pets_table WHERE owner_id = ?"
+  let sql = "SELECT * FROM pets_table WHERE pet_id = ?"
 
   try{
-    let data = await executeSQL(sql, req.session.user.id);
+    let data = await executeSQL(sql, petID);
     //Render route
     res.render('updatePet',{
       title: 'Paws Connect',
