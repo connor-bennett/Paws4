@@ -4,29 +4,24 @@ block content
     br
     br
     hr
-    h3.text-center Are you sure you want to delete the following pet profile?
-    - var petID = pet.pet_id;
-    - console.log(petID);
-    // show pet profile information\
+    .container-fluid
+        .row.justify-content-center
+           
+            - var petID = pet.pet_id;
+           
+            .card
+                h3 Are you sure you want to delete the following pet profile?
+                img.card-image-top(src=pet.profile_image, alt="profile picture", width="250", height="250")
+                .card-body
+                    p.card-text Pet ID: #{pet.pet_id}
+                    p.card-text Pet Name: #{pet.pet_id}
+                    p.card-text Pet Type: #{pet.pet_type} 
+                    p.card-text Pet Breed: #{pet.pet_breed}
+                    p.card-text Pet Bio: #{pet.pet_bio}
 
-    h4.text-center 
-        ul 
-        
-            li Pet ID: #{pet.pet_id}
-            li Pet Name: #{pet.pet_id}
-            li 
-                img(src=pet.profile_image, alt="profile picture", width="250", height="250")
-            li Pet Type: #{pet.pet_type} 
-            li Pet Breed: #{pet.pet_breed}
-            li Pet Bio: #{pet.pet_bio}
-
-    
-    a(href="/deletePet?pet_id="+petID)
-        button(type="button") Yes, Delete.
-    a(href="/updatePet?pet_id="+petID)
-         button(type="button") No, Cancel.
-
-    a(href="/transferPet")
-
-        button(type="button") No, Transfer.
-
+                br
+                a.btn.btn-primary(href="/deletePet?pet_id="+petID) Yes, Delete.
+                br
+                a.btn.btn-primary(href="/updatePet?pet_id="+petID) No, Cancel.
+                br
+                a.btn.btn-primary(href="/transferPet") No, Transfer.

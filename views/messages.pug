@@ -24,11 +24,11 @@ block content
               each message in messages
                 li.pb-2
                   if message.is_transfer  
-                    span= `Request to transfer ownership #{message.pet_id} from #{message.sender_name} sender ID: #{message.sender_id}: `
+                    span Request to transfer ownership #{message.pet_id} from #{message.sender_name} sender ID: #{message.sender_id}: 
                     button.btn.btn-success(type="button", class="accept-btn", data-sender-id=message.sender_id, data-pet-id=message.pet_id, data-message-id=message.message_id) Accept
                     button.btn.btn-danger(type="button", class="deny-btn", data-message-id=message.message_id) Deny
                   else if message.is_friend_req 
-                    span= `#{message.sender_name} has sent you a Friend Request! `
+                    span #{message.sender_name} has sent you a Friend Request!
                     form(action="/acceptFriend", method="post", class="form-inline")
                       input(type="hidden", id="sender_id", name="sender_id", value=message.sender_id)
                       input(type="hidden", id="message_id", name="message_id", value=message.message_id)
