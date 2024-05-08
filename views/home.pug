@@ -3,11 +3,10 @@ extends default
 block content
 
     .home-search 
-
-        img(src="/images/pets-images.jpg")
+        //- img(src="/images/pets-images.jpg", width="400", height="200", alt="home image")
         form(id='searchForm' action='/search' method='GET')
             input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
-            button(type='submit') Search
+            button.btn.btn-primary(type='submit') Search
             br
             br
 
@@ -77,8 +76,10 @@ block content
     .container-fluid
       .row.h-100
         #postsContainer.col-md-12
+        if friendPost && publicPost
           h2(style="text-decoration: underline;") Your Feed
           .row.justify-content-center
+            
             each post in friendPost
               - const date = new Date(post.post_timeStamp)
               .col-md-3
@@ -92,6 +93,7 @@ block content
                     if translation_out && postId
                       if postId == post.post_id
                         p.notice Translated to: #{translation_out}
+            
             each post in publicPost
               - const date = new Date(post.post_timeStamp)
               .col-md-3
