@@ -27,7 +27,7 @@ html {
 
   .home-search {
     position: absolute;
-    top: 40%;
+    top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
@@ -36,7 +36,9 @@ html {
   }
    
   .home-search img {
-    margin-bottom: 200px;
+    height: 200px;
+    width: 500px;
+    
   } 
   
    .home-input {
