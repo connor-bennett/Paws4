@@ -930,7 +930,7 @@ app.post('/createPet', async (req, res) => {
 
   // Insert the information into database table
   let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
-             VALUES (?,?,?,?,?,?,?)`;
+             VALUES (?,?,?,?,?,?)`;
   let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
 
   //Execute the query
