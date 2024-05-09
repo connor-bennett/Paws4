@@ -1026,6 +1026,7 @@ app.post('/IntitiateTransfer', async (req, res) => {
   const receivingUsername = req.body.username;
   const petName = req.body.petUserName;
   const sendingUser = req.session.user.user_name;
+  console.log(receivingUsername);
 
   // Get sender and receiver IDs
   let sql1 = 'SELECT id FROM users_table WHERE user_name = ?';
@@ -1041,8 +1042,8 @@ app.post('/IntitiateTransfer', async (req, res) => {
     let receiverResult = await executeSQL(sql1, [receivingUsername]);
 
     // Extract IDs
-    let senderId = senderResult[0]?.id;
-    let receiverId = receiverResult[0]?.id;
+    let senderId = senderResult[0].id;
+    let receiverId = receiverResult[0].id;
     let petId = petResult[0].id;
   
     // Insert into messages table
