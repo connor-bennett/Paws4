@@ -1028,8 +1028,7 @@ app.post('/IntitiateTransfer', async (req, res) => {
     await executeSQL(sql3, values3);
   
     // Render a success message or confirmation page
-    res.send('Pet transfer initiated successfully' + "Send " + senderId + " rec " + receiverId );
-    res.redirect('/');
+    res.redirect('/messages');
   } catch (error) {
     return res.send('ERROR in Transfer ' + error.message);
   }
