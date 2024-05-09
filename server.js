@@ -177,7 +177,6 @@ app.get('/createUser', async(req, res) => {
   });
 
 // ------- Search User --------------------
-// ------- Search User --------------------
 app.get('/search', async (req, res) => {
   const searchQuery = req.query.q;
   
@@ -260,7 +259,7 @@ app.get('/search', async (req, res) => {
 
    
 
-    res.render('home', 
+    res.render('search', 
     {
       title: `Search results for: ${searchQuery}`,    // search results title
       userSearchResults: userSearchResults,                         // pass user search results to webpage template
@@ -746,6 +745,9 @@ app.get('/translatePet', async (req, res) => {
   }
   
   });
+
+
+
 // ---------------------------------------------
 // END GET ROUTES
 // ---------------------------------------------
