@@ -260,7 +260,7 @@ app.get('/search', async (req, res) => {
 
    
 
-    res.render('home', 
+    res.redirect('search', 
     {
       title: `Search results for: ${searchQuery}`,    // search results title
       userSearchResults: userSearchResults,                         // pass user search results to webpage template
@@ -283,7 +283,7 @@ app.get('/search', async (req, res) => {
 
 app.get('/profiles', async (req, res) => {    // route to user profiles//
   if (!req.session.user) {                    // if not logged in display message
-      return res.send('You are not logged in');
+    res.redirect('login');
   }
 
   const user = req.session.user; // contains session user information
@@ -359,7 +359,7 @@ app.get('/profiles', async (req, res) => {    // route to user profiles//
 
 app.get('/petProfile', async (req, res) => {
   if (!req.session.user) {
-      return res.send('You are not logged in');
+    res.redirect('login');
   }
   const user = req.session.user;
   let petID = req.query.pet_id;
@@ -400,7 +400,7 @@ app.get('/petProfile', async (req, res) => {
 app.get('/updateUser', async (req, res) => {
     // Check if user is logged in (user information exists in session)
     if (!req.session.user) {
-        return res.send('You are not logged in');
+      res.redirect('login');
     }
 
     // Access the user information stored in the session
@@ -416,7 +416,7 @@ app.get('/updateUser', async (req, res) => {
 app.get('/updatePassword', async (req, res) =>{
   //Check if user is logged in (user information exists in session)
     if(!req.session.user){
-      return res.send("You are not logged in");
+      res.redirect('login');
     }
 
     //Render the updatePasswords page
@@ -428,7 +428,7 @@ app.get('/updatePassword', async (req, res) =>{
 app.get('/createPet', async (req, res) =>{
     // Check if user is logged in (user information exists in session)
     if (!req.session.user){
-      return res.send('You are not logged in');
+      res.redirect('login');
     }
 
     // Render the createPet page 
@@ -439,7 +439,7 @@ app.get('/createPet', async (req, res) =>{
 app.get("/updatePet", async (req, res) =>{
   //Check if user is Logged in (user information exists in session)
   if (!req.session.user){
-    return res.send('You are not logged in!');
+    res.redirect('login');
   }
   const petID = req.query.pet_id;
   //hard coding to get first pet from ownsers list for now
@@ -501,7 +501,7 @@ app.get('/deletePet', async (req, res)=>{
 //-------------Pet Owner Create Post Route----------------------
 app.get('/createPost', async (req, res) => {
   if (!req.session.user) {
-      return res.send('Not logged in');
+    res.redirect('login');
   }
   const owner_id = req.session.user.id;
   let sql = "SELECT pet_id FROM pets_table WHERE owner_id = ?";
@@ -833,7 +833,7 @@ app.post('/createUser', async(req, res) => {
 app.post('/updateUser', async (req, res) => {
     // Check if user is logged in (user information exists in session)
     if (!req.session.user) {
-        return res.send('You are not logged in');
+      res.redirect('login');
     }
 
     // Get the new information from the form submission
@@ -855,7 +855,7 @@ app.post('/updateUser', async (req, res) => {
         req.session.user.language = newLang;
         // You might not want to store the new password in the session for security reasons
 
-        res.send('User information updated successfully');
+        res.redirect("profiles");
     } catch (error) {
         return res.send('Error updating user information: ' + error.message);
     }
@@ -865,7 +865,7 @@ app.post('/updateUser', async (req, res) => {
 app.post('/updatePassword', async (req, res) => {
   //Check if user is logged in (user information exists in session)
   if (!req.session.user){
-      return res.send("You are not logged in");
+      res.redirect('login');
   }
 
   //Get new information from the form submition
@@ -897,7 +897,7 @@ app.post('/updatePassword', async (req, res) => {
 
       //Execute the query
       await executeSQL(sql, params);
-      res.send('Password Successfully Updated!');
+      res.redirect('login');
   } catch (error) {
     return res.send("Error updating password: " + error.message);
   }
@@ -908,7 +908,7 @@ app.post('/updatePassword', async (req, res) => {
 app.post('/createPet', async (req, res) => {
   // Check if user is logged in (user information exists in session)
   if (!req.session.user){
-    return res.send('You are not logged in');
+    res.redirect('login');
   }
 
   // Get the new information from the form submission
@@ -935,7 +935,7 @@ app.post('/createPet', async (req, res) => {
   //Execute the query
   try{
     await executeSQL(sql, values);
-    res.send('Pet created successfully!');
+    res.redirect('profiles');
   } catch (error) {
     return res.send ('Error in creating pet: ' + error.message);
   }
@@ -945,7 +945,7 @@ app.post('/createPet', async (req, res) => {
  app.post('/updatePet', async (req,res) => {
   //Check if user is logged in
   if (!req.session.user){
-    return res.send("Not logged in");
+    res.redirect('login');
   }
   const petID = req.body.pet_id;
   const newName = req.body.new_pet_name;
@@ -958,7 +958,7 @@ app.post('/createPet', async (req, res) => {
 
   try{
     await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    res.redirect('petProfile?pet_id='+petID);
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
@@ -968,7 +968,7 @@ app.post('/createPet', async (req, res) => {
 app.post('/createPost', async (req, res) => {
   // Check if user is logged in 
   if (!req.session.user){
-    return res.send('Not logged in');
+    res.redirect('/login');
   }
   
   const postImage = req.body.posting_image;
@@ -985,7 +985,7 @@ app.post('/createPost', async (req, res) => {
   
   try{
     await executeSQL(sql, values);
-    res.send('post created successfully!');
+    res.redirect('profiles');
   } catch (error) {
     return res.send ('Error in creating post: ' + error.message);
   }
