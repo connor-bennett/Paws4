@@ -931,9 +931,9 @@ app.post('/createPet', async (req, res) => {
   }
 
   // Insert the information into database table
-  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, pet_bio, owner_id)
-             VALUES (?,?,?,?,?,?)`;
-  let values = [petID, petName, petType, petBreed, petBio, req.session.user.id];
+  let sql = `INSERT INTO pets_table (pet_id, pet_name, pet_type, pet_breed, profile_image, pet_bio, owner_id)
+             VALUES (?,?,?,?,?,?, ?)`;
+  let values = [petID, petName, petType, petBreed, petProfile, petBio, req.session.user.id];
 
   //Execute the query
   try{
@@ -955,13 +955,14 @@ app.post('/createPet', async (req, res) => {
   const newType = req.body.new_pet_type;
   const newBreed = req.body.new_pet_breed;
   const newBio = req.body.new_pet_bio;
+  const newImage = req.body.new_profile_image;
 
-  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ? WHERE pet_id = ?"
-  let values = [newName,newType, newBreed, newBio, petID];
+  let sql = "UPDATE pets_table SET pet_name = ?, pet_type = ?, pet_breed = ?, pet_bio = ?, profile_image = ? WHERE pet_id = ?"
+  let values = [newName,newType, newBreed, newBio, newImage, petID];
 
   try{
     await executeSQL(sql, values);
-    res.send('Pet has been updated!');
+    res.redirect("petProfile?pet_id="+petID);
   } catch (error){
     return res.send('Error in updateing pet: ' + error.message);
   }
@@ -1056,6 +1057,7 @@ app.post('/IntitiateTransfer', async (req, res) => {
   
     // Render a success message or confirmation page
     res.send('Pet transfer initiated successfully' + "Send " + senderId + " rec " + receiverId );
+    res.redirect('/');
   } catch (error) {
     return res.send('ERROR in Transfer ' + error.message);
   }
@@ -1069,7 +1071,7 @@ app.post('/sendmessage', async (req, res) => {
    const message = req.body.message;
     
    // Assuming you have session handling middleware to get the user ID
-   const sender_id = req.body.sender_id;
+   const sender_id = req.session.user.id;
    console.log("ID: " + sender_id);
 
    const sql1 = `SELECT id FROM users_table WHERE user_name = ?`;
@@ -1085,7 +1087,7 @@ app.post('/sendmessage', async (req, res) => {
    try {
        // Execute the SQL query to insert the message
        await executeSQL(sql, values);
-       res.send("Message Sent");
+       res.redirect('\messages');
    } catch (error) {
        // Handle errors appropriately, such as rendering an error page or sending an error response
        console.error("Error sending message:", error);
