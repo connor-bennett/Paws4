@@ -2,9 +2,9 @@ extends default
 
 block content
 
+
     .home-search 
 
-        img(src="/images/pets-images.jpg")
         form(id='searchForm' action='/search' method='GET')
             input#searchQuery.home-input(autofocus='' value=`${searchQuery || ''}` placeholder='Enter a search term' type='search' name='q')
             button(type='submit') Search
@@ -72,39 +72,4 @@ block content
         else
             .result-count
                 strong No results found for #{searchQuery}
-
-
-    .container-fluid
-      .row.h-100
-        #postsContainer.col-md-12
-          .row.justify-content-center
-            each post in friendPost
-              - const date = new Date(post.post_timeStamp)
-              .col-md-3
-                .card
-                  img.card-img-top(src=post.posting_image, alt="Post image")
-                  .card-body
-                    a.card-text(href="/profiles?user_id="+post.pet_owner_id) @#{post.pet_owner_username} 
-                    p.card-text= post.post_text
-                    p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
-                    a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
-                    if translation_out && postId
-                      if postId == post.post_id
-                        p.notice Translated to: #{translation_out}
-            each post in publicPost
-              - const date = new Date(post.post_timeStamp)
-              .col-md-3
-                .card
-                  img.card-img-top(src=post.posting_image, alt="Post image")
-                  .card-body
-                    a.card-text(href="/profiles?user_id="+post.pet_owner_id) @#{post.pet_owner_username}
-                    p.card-text= post.post_text
-                    p.card-text Posted: #{date.toLocaleDateString()} at #{date.toLocaleTimeString()}
-                    a.blue-link(href=`/translateHome?post_id=${post.post_id}&post_text=${encodeURIComponent(post.post_text)}`) Translate post
-                    if translation_out && postId
-                      if postId == post.post_id
-                        p.notice Translated to: #{translation_out}
-
-
-
 
